@@ -59,7 +59,11 @@ scripts/app-store-screenshots/output/
 # expo
 .expo/
 ios/
-android/
+# The root Capacitor Android project is versioned; other native projects stay ignored.
+**/android/
+!/android/
+*.jks
+*.keystore
 expo-env.d.ts
 **/dist/
 *.ipa
@@ -72,6 +76,8 @@ debug/
 
 # IDE
 .vscode/
+.idea/
+.tools/
 
 # test artifacts (nested)
 **/test-results/

@@ -141,10 +141,10 @@ export function PrivacyContent() {
             <p>
               {t("contact.desc")}
               <a
-                href="mailto:support@openhealth.blog"
+                href="mailto:fitnmovenp@gmail.com"
                 className="text-black dark:text-white underline underline-offset-4 decoration-neutral-300 dark:decoration-neutral-700 hover:decoration-black dark:hover:decoration-white transition-colors"
               >
-                support@openhealth.blog
+                fitnmovenp@gmail.com
               </a>
             </p>
           </section>

@@ -28,7 +28,7 @@ export function usePushSubscription() {
 
   const subscribeToPush = useCallback(async () => {
     if (!vapid?.key) return false;
-    if (!("serviceWorker" in navigator) || !("PushManager" in window))
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window))
       return false;
 
     const permission = await Notification.requestPermission();
@@ -77,6 +77,7 @@ export function usePushSubscription() {
     isSupported:
       typeof window !== "undefined" &&
       "serviceWorker" in navigator &&
+      "Notification" in window &&
       "PushManager" in window,
     permission:
       typeof window !== "undefined" && "Notification" in window

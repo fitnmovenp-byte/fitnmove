@@ -35,7 +35,7 @@ export default function ProgramWorkoutPage() {
           </div>
         }
       >
-        <WorkoutAnalyzerMode experience="programs" />
+        <WorkoutAnalyzerMode experience="programs" disableCamera />
       </Suspense>
     </div>
   );

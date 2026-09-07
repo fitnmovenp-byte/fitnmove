@@ -693,7 +693,12 @@ export function LoginDialog({ open, onOpenChange, onSuccess }: LoginDialogProps)
                 setGoogleLoading(true);
                 setError("");
                 try {
-                  await signIn.social({ provider: "google" });
+                  const result = await signIn.social({ provider: "google" });
+                  if (result.error) {
+                    setError(result.error.message);
+                    setGoogleLoading(false);
+                    return;
+                  }
                   posthog.capture("user_logged_in", { method: "google" });
                 } catch {
                   setError(t("auth.googleLoginFailed"));
@@ -719,7 +724,12 @@ export function LoginDialog({ open, onOpenChange, onSuccess }: LoginDialogProps)
                 setAppleLoading(true);
                 setError("");
                 try {
-                  await signIn.social({ provider: "apple" });
+                  const result = await signIn.social({ provider: "apple" });
+                  if (result.error) {
+                    setError(result.error.message);
+                    setAppleLoading(false);
+                    return;
+                  }
                   posthog.capture("user_logged_in", { method: "apple" });
                 } catch {
                   setError(t("auth.appleLoginFailed"));

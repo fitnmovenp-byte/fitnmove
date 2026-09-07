@@ -346,6 +346,14 @@ function Footer() {
           <Link href="/privacy">Privacy</Link>
         </div>
       </div>
+      <div className="mx-auto mt-5 flex max-w-[1120px] flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <p>Train smarter, move daily, and build momentum with FitNMove.</p>
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
+          <a href="tel:+9779803526374" className="hover:text-foreground">+977 9803526374</a>
+          <a href="https://wa.me/9779803526374" target="_blank" rel="noreferrer" className="hover:text-foreground">WhatsApp</a>
+          <a href="mailto:fitnmovenp@gmail.com" className="hover:text-foreground">fitnmovenp@gmail.com</a>
+        </div>
+      </div>
     </footer>
   );
 }

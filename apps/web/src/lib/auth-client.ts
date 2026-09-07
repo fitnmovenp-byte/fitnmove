@@ -122,6 +122,12 @@ export const signIn = {
     return { data: toAuthData(data), error };
   },
   social: async ({ provider }: { provider: "google" | "apple" }) => {
+    if (typeof navigator !== "undefined" && navigator.userAgent.includes("FitNMoveAndroid/")) {
+      return {
+        data: null,
+        error: new Error("Please sign in with email and password in the Android app. Social sign-in is available on the website."),
+      };
+    }
     const supabase = getSupabaseBrowserClient();
     if (!supabase) {
       return {

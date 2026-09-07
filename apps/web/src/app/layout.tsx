@@ -14,6 +14,23 @@ export const metadata: Metadata = {
     "FitNMove helps you train smarter, move daily, track progress, and compete with momentum in one mobile-first fitness hub.",
   manifest: "/manifest.json",
   metadataBase: new URL("https://openhealth.blog"),
+  alternates: {
+    canonical: "/",
+  },
+  verification: {
+    google: "google7a69d6af59e330a5",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
     title: "FitNMove — Train, Move, Compete",
     description:
@@ -68,6 +85,23 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "FitNMove",
+              url: "https://openhealth.blog",
+              description: "A mobile-first fitness platform for workouts, movement, nutrition, progress, and competition.",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: "https://openhealth.blog/blog?query={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
       </head>
       <body className={inter.className}>
         <Providers>{children}</Providers>

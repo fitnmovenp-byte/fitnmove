@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   BarChart3,
+  Camera,
   ChevronRight,
   Clock,
   Dumbbell,
@@ -79,6 +80,22 @@ export default function WorkoutPage() {
           <span className="mt-5 block text-lg font-black text-[#17201E]">Program workout</span>
           <span className="mt-1 block text-sm leading-5 text-[#6B7773]">
             Follow a guided plan with fixed targets and automatic breaks.
+          </span>
+        </Link>
+
+        <Link
+          href="/hub/workout/compete"
+          className="group min-h-[164px] rounded-[22px] border border-[#DDE8E4] bg-[#F7FAF9] p-4 text-left shadow-sm transition hover:border-[#20C7A4]/60 hover:bg-white"
+        >
+          <span className="flex items-start justify-between gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-[#E8F6FF] text-[#16729B]">
+              <Camera className="h-7 w-7" />
+            </span>
+            <ChevronRight className="h-5 w-5 text-[#6B7773] transition group-hover:translate-x-0.5 group-hover:text-[#20C7A4]" />
+          </span>
+          <span className="mt-5 block text-lg font-black text-[#17201E]">Compete</span>
+          <span className="mt-1 block text-sm leading-5 text-[#6B7773]">
+            Record camera-verified push-ups, squats, planks, and pull-ups.
           </span>
         </Link>
       </section>

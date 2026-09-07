@@ -16,8 +16,15 @@
     "test:e2e": "cd apps/web && pnpm test:e2e"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.1",
+    "@types/node": "^22.19.13",
     "turbo": "^2.5.0",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
-  "packageManager": "pnpm@10.11.0"
+  "packageManager": "pnpm@10.11.0",
+  "dependencies": {
+    "@capacitor/android": "^8.5.1",
+    "@capacitor/core": "^8.5.1"
+  }
 }

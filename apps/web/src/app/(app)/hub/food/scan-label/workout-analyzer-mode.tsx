@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Activity,
   Camera,
@@ -147,7 +147,7 @@ type RoutineStep =
       seconds: number;
     };
 
-type PresetExercise = {
+export type PresetExercise = {
   label: string;
   exercise?: ExerciseKey;
   clipSrc?: string;
@@ -158,7 +158,7 @@ type PresetExercise = {
   tracking: "camera" | "timer" | "manual";
 };
 
-type WorkoutPreset = {
+export type WorkoutPreset = {
   id: string;
   name: string;
   displayName: string;
@@ -335,10 +335,11 @@ const EXERCISES: ExerciseDefinition[] = [
 ];
 
 const TIMED_EXERCISES = new Set<ExerciseKey>(["plank", "wallSit", "sidePlank"]);
+const CAMERA_SUPPORTED_EXERCISES = new Set<ExerciseKey>(["pushup", "pullup", "plank", "squat"]);
 
 const TRACKING_PROFILES: Record<ExerciseKey, ExerciseTrackingProfile> = {
   squat: { recommended: "camera", motion: true, motionHint: "Phone in pocket or waistband; count the down-up rhythm." },
-  pushup: { recommended: "camera", motion: false, motionHint: "Motion is less reliable for push-ups; use tap, audio, or Manual Mode if camera is weak." },
+  pushup: { recommended: "camera", motion: false, motionHint: "Motion is less reliable for push-ups; use Audio Cue or Manual Mode if camera is weak." },
   plank: { recommended: "interactive", motion: false, motionHint: "Use Audio Cue or Manual Mode for timer-based hold work." },
   gluteBridge: { recommended: "camera", motion: true, motionHint: "Phone at waistband; count hip lift rhythm." },
   reverseLunge: { recommended: "camera", motion: true, motionHint: "Phone in pocket; count each return to standing." },
@@ -357,7 +358,7 @@ const TRACKING_PROFILES: Record<ExerciseKey, ExerciseTrackingProfile> = {
   squatJump: { recommended: "motion", motion: true, motionHint: "Phone in pocket; impact rhythm counts each jump." },
   bicepCurl: { recommended: "camera", motion: true, motionHint: "Phone strapped or held in working hand; count curl rhythm." },
   overheadPress: { recommended: "camera", motion: true, motionHint: "Phone held or strapped near arm; count press rhythm." },
-  pullup: { recommended: "camera", motion: false, motionHint: "Motion is less reliable for pull-ups; use tap, audio, or trust if camera is weak." },
+  pullup: { recommended: "camera", motion: false, motionHint: "Motion is less reliable for pull-ups; use Audio Cue or Manual Mode if camera is weak." },
 };
 
 const TRACKING_OPTIONS: Array<{
@@ -367,7 +368,7 @@ const TRACKING_OPTIONS: Array<{
   proof: string;
 }> = [
   { mode: "camera", title: "Camera Mode", description: "Pose tracking with the strongest proof.", proof: "4x points" },
-  { mode: "interactive", title: "Interactive Mode", description: "Tap or audio reps without camera.", proof: "2x points" },
+  { mode: "interactive", title: "Audio Cue Mode", description: "Audio reps without camera.", proof: "2x points" },
   { mode: "trust", title: "Manual Mode", description: "Complete the timer and self-confirm.", proof: "1x points" },
 ];
 
@@ -376,7 +377,6 @@ const INTERACTIVE_OPTIONS: Array<{
   title: string;
   description: string;
 }> = [
-  { mode: "tap", title: "Tap-to-Rep", description: "Tap the big button, space, enter, or supported volume keys after each rep." },
   { mode: "audio", title: "Audio Rep", description: "Say each rep or make a clear breath/impact rhythm for the microphone." },
 ];
 
@@ -761,7 +761,7 @@ function buildPresetSteps(preset: WorkoutPreset): RoutineStep[] {
   const steps: RoutineStep[] = [];
   preset.exercises.forEach((exerciseItem, exerciseIndex) => {
     for (let setIndex = 0; setIndex < exerciseItem.sets; setIndex += 1) {
-      if (exerciseItem.tracking === "camera" && exerciseItem.exercise && exerciseItem.reps) {
+      if (exerciseItem.tracking !== "timer" && exerciseItem.exercise && exerciseItem.reps) {
         steps.push({
           type: "work",
           exercise: exerciseItem.exercise,
@@ -799,9 +799,9 @@ function formatPresetPreview(exercise: PresetExercise) {
   return `${exercise.seconds ?? 30}s ${label}`;
 }
 
-function getPresetTrackingModes(preset: WorkoutPreset) {
+function getPresetTrackingModes(preset: WorkoutPreset, cameraEnabled = true) {
   const modes = ["Manual", "Audio Cue"];
-  if (preset.exercises.some((item) => item.exercise)) modes.push("Camera");
+  if (cameraEnabled && preset.exercises.some((item) => item.exercise)) modes.push("Camera");
   return modes;
 }
 
@@ -1440,7 +1440,18 @@ async function loadPoseLandmarker(): Promise<PoseLandmarkerLike> {
   }
 }
 
-export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }) {
+export function WorkoutAnalyzerMode({
+  experience,
+  initialPreset,
+  cameraOnly = false,
+  disableCamera = false,
+}: {
+  experience?: AnalyzerTab;
+  initialPreset?: WorkoutPreset | null;
+  cameraOnly?: boolean;
+  disableCamera?: boolean;
+}) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const utils = trpc.useUtils();
   const analyzerShellRef = useRef<HTMLElement>(null);
@@ -1512,16 +1523,18 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
   const [customReps, setCustomReps] = useState(15);
   const [customSets, setCustomSets] = useState(2);
   const [customRestSeconds, setCustomRestSeconds] = useState(20);
-  const [workoutFlowStep, setWorkoutFlowStep] = useState<WorkoutFlowStep>("activity");
+  // Dedicated workout routes already identify the requested mode, so open directly
+  // in setup instead of showing the activity picker a second time.
+  const [workoutFlowStep, setWorkoutFlowStep] = useState<WorkoutFlowStep>(experience ? "setup" : "activity");
   const [activeTab, setActiveTab] = useState<AnalyzerTab>(experience ?? "quick");
   const [selectedPreset, setSelectedPreset] = useState<WorkoutPreset | null>(null);
-  const [activePreset, setActivePreset] = useState<WorkoutPreset | null>(null);
+  const [activePreset, setActivePreset] = useState<WorkoutPreset | null>(initialPreset ?? null);
   const [showSettings, setShowSettings] = useState(false);
   const [showExerciseMenu, setShowExerciseMenu] = useState(false);
   const [exerciseSearch, setExerciseSearch] = useState("");
   const [showPoseOverlay, setShowPoseOverlay] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [trackingMode, setTrackingMode] = useState<TrackingMode>("trust");
+  const [trackingMode, setTrackingMode] = useState<TrackingMode>(cameraOnly ? "camera" : "trust");
   const [interactiveMode, setInteractiveMode] = useState<InteractiveMode>("audio");
   const [showTrackingPicker, setShowTrackingPicker] = useState(false);
   const [weakCameraPrompt, setWeakCameraPrompt] = useState(false);
@@ -1571,11 +1584,12 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
       toast.success(data.message);
       setRewardPopup({
         title: "Congratulations",
-        message: "Exercise complete. Points added.",
+        message: data.completedMissions.length ? `${data.completedMissions.join(", ")} completed.` : "Exercise complete. Points added.",
         points: data.points,
       });
       void utils.tasks.getMyStats.invalidate();
       void utils.tasks.getLeaderboard.invalidate();
+      void utils.tasks.getDaily.invalidate();
     },
     onError: (error) => {
       toast.error(error.message);
@@ -1672,16 +1686,33 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
     () => EXERCISES.find((item) => item.key === exercise) ?? EXERCISES[0],
     [exercise]
   );
+  const canUseCameraMode = !disableCamera && CAMERA_SUPPORTED_EXERCISES.has(selectedExercise.key);
+  useEffect(() => {
+    if (cameraOnly) {
+      if (trackingMode !== "camera") {
+        setTrackingMode("camera");
+        trackingModeRef.current = "camera";
+      }
+      return;
+    }
+    if (trackingMode !== "camera" || canUseCameraMode) return;
+    setTrackingMode("trust");
+    trackingModeRef.current = "trust";
+    stopCamera();
+  }, [cameraOnly, canUseCameraMode, trackingMode]);
   const filteredExercises = useMemo(() => {
     const query = exerciseSearch.trim().toLowerCase();
-    if (!query) return EXERCISES;
-    return EXERCISES.filter(
+    const availableExercises = cameraOnly
+      ? EXERCISES.filter((item) => CAMERA_SUPPORTED_EXERCISES.has(item.key))
+      : EXERCISES;
+    if (!query) return availableExercises;
+    return availableExercises.filter(
       (item) =>
         item.label.toLowerCase().includes(query) ||
         item.hint.toLowerCase().includes(query) ||
         item.target.toLowerCase().includes(query)
     );
-  }, [exerciseSearch]);
+  }, [cameraOnly, exerciseSearch]);
 
   const selectedProgram = useMemo(() => getProgram(program), [program]);
   const isTimedExercise = TIMED_EXERCISES.has(exercise);
@@ -1950,8 +1981,9 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
       setWorkoutFlowStep("activity");
       playSound("finish");
       speak(message);
+      router.push("/hub/workout");
     },
-    [playSound, speak]
+    [playSound, router, speak]
   );
 
   const enterRoutineStep = useCallback(
@@ -2618,7 +2650,7 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
     const startAudioRepMode = async () => {
       try {
         if (!navigator.mediaDevices?.getUserMedia) {
-          setError("Microphone access is not supported. Use Tap-to-Rep.");
+          setError("Microphone access is not supported. Use Manual Mode.");
           return;
         }
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
@@ -2632,6 +2664,9 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
           (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
         if (!AudioContextCtor) return;
         const context = new AudioContextCtor();
+        if (context.state === "suspended") {
+          await context.resume();
+        }
         audioContextModeRef.current = context;
         const source = context.createMediaStreamSource(stream);
         const analyser = context.createAnalyser();
@@ -2648,10 +2683,10 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
           });
           const rms = Math.sqrt(sum / data.length);
           const now = performance.now();
-          if (rms > 10 && now - audioLastRepAtRef.current > 1800) {
+          if (rms > 7 && now - audioLastRepAtRef.current > 1400) {
             audioFatigueRef.current = Math.min(1, audioFatigueRef.current + 0.025);
           }
-          if (rms > 18 && now - audioLastRepAtRef.current > 650) {
+          if (rms > 12 && now - audioLastRepAtRef.current > 800) {
             audioLastRepAtRef.current = now;
             registerFallbackRep("audio", "Audio rep detected.");
           }
@@ -2659,7 +2694,7 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
         };
         readAudio();
       } catch {
-        setError("Microphone permission was blocked. Use Tap-to-Rep.");
+        setError("Microphone permission was blocked. Use Manual Mode.");
       }
     };
 
@@ -2884,6 +2919,10 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
   };
 
   const chooseTrackingMode = async (mode: TrackingMode, interactive: InteractiveMode = interactiveMode) => {
+    if (mode === "camera" && !canUseCameraMode) {
+      setError("Camera Mode is available for push-up, pull-up, plank, and squat only.");
+      return;
+    }
     const wasRunning = statusRef.current === "running";
     setTrackingMode(mode);
     setInteractiveMode(interactive);
@@ -2930,6 +2969,10 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
   const updateTrackingModeSelection = (value: string) => {
     const [modeValue, interactiveValue] = value.split(":") as [TrackingMode, InteractiveMode | undefined];
     const nextInteractive = interactiveValue ?? interactiveMode;
+    if (modeValue === "camera" && !canUseCameraMode) {
+      setError("Camera Mode is available for push-up, pull-up, plank, and squat only.");
+      return;
+    }
     if (statusRef.current === "running") {
       void chooseTrackingMode(modeValue, nextInteractive);
       return;
@@ -2975,6 +3018,10 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
   };
 
   const handleSetButtonClick = () => {
+    if (cameraOnly) {
+      void chooseTrackingMode("camera");
+      return;
+    }
     if (
       status === "ready" ||
       status === "running" ||
@@ -3377,7 +3424,7 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
 
       {workoutFlowStep === "setup" && (
       <>
-      <div className="grid grid-cols-2 gap-2 rounded-full border border-border bg-white p-1 shadow-sm dark:bg-card">
+      {!cameraOnly && !activePreset && <div className="grid grid-cols-2 gap-2 rounded-full border border-border bg-white p-1 shadow-sm dark:bg-card">
         {(["quick", "programs"] as AnalyzerTab[]).map((tab) => (
           <button
             key={tab}
@@ -3391,9 +3438,9 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
             {tab === "quick" ? "Quick workout" : "Programs"}
           </button>
         ))}
-      </div>
+      </div>}
 
-      {activeTab === "programs" ? (
+      {activeTab === "programs" && !activePreset ? (
         <section className="space-y-7 rounded-[26px] border border-[#E3ECE8] bg-[#F7FAF9] p-6 sm:p-7 lg:p-8">
           <div className="flex items-end justify-between gap-3">
             <div>
@@ -3426,7 +3473,7 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
         </section>
       ) : (
         <>
-          <section className="rounded-[22px] border border-border bg-white p-4 shadow-sm dark:bg-card">
+          {!activePreset && <section className="rounded-[22px] border border-border bg-white p-4 shadow-sm dark:bg-card">
             <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr] lg:items-end">
               <div className="relative">
                 <label className="text-[11px] font-black uppercase tracking-[0.14em] text-muted-foreground">
@@ -3511,10 +3558,38 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
                 {activePreset ? "Your workout clip loops during manual and audio cue sets." : activeTrackingProfile.motionHint}
               </span>
             </div>
-          </section>
+          </section>}
+
+          {activePreset && (
+            <section className="rounded-[22px] border border-[#CFECE4] bg-[#F7FAF9] p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-black text-[#17201E]">Review your custom workout</p>
+                  <p className="mt-1 text-xs leading-5 text-[#6B7773]">
+                    {activePreset.exercises.length} exercises • {activePreset.durationMin} min
+                  </p>
+                </div>
+                <Flame className="h-5 w-5 shrink-0 text-[#20C7A4]" />
+              </div>
+              <ol className="mt-3 space-y-2">
+                {activePreset.exercises.map((item, index) => (
+                  <li key={`${item.label}-${index}`} className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2.5 text-sm">
+                    <span className="min-w-0 break-words font-bold text-[#17201E]">{index + 1}. {item.label}</span>
+                    <span className="shrink-0 text-xs font-bold text-[#4C5F59]">{formatPresetLine(item)} · {item.restSeconds ?? 0}s break</span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
 
           <section className="rounded-[22px] border border-border bg-white p-4 shadow-sm dark:bg-card">
             <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+              {cameraOnly ? (
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-muted-foreground">Workout mode</p>
+                  <p className="mt-2 text-sm font-semibold text-[#17201E]">Camera verification · 4x points</p>
+                </div>
+              ) : (
               <label className="space-y-2">
                 <span className="block text-[11px] font-black uppercase tracking-[0.14em] text-muted-foreground">
                   Workout mode
@@ -3525,44 +3600,22 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
                   className="h-12 w-full rounded-2xl border border-input bg-background px-4 text-sm font-semibold outline-none"
                 >
                   <option value="trust">Manual Mode - 1x points</option>
-                  {!activePreset && <option value="interactive:tap">Tap Mode - 2x points</option>}
                   <option value="interactive:audio">Audio Cue Mode - 2x points</option>
-                  <option value="camera">Camera Coach - 4x points</option>
-                  {!activePreset && <option value="motion" disabled={!activeTrackingProfile.motion}>Phone Motion - 4x points</option>}
+                  {canUseCameraMode && <option value="camera">Camera Coach - 4x points</option>}
                 </select>
               </label>
+              )}
             </div>
           </section>
 
-          {activePreset && (
-            <section className="rounded-[22px] border border-[#CFECE4] bg-[#F7FAF9] p-4 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-black text-[#17201E]">{activePreset.name}</p>
-                  <p className="mt-1 text-xs leading-5 text-[#6B7773]">
-                    {activePreset.exercises.length} exercises • {activePreset.durationMin} min • {activePreset.pointsReward} points
-                  </p>
-                </div>
-                <Flame className="h-5 w-5 shrink-0 text-[#20C7A4]" />
-              </div>
-              <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-                {activePreset.exercises.map((item, index) => (
-                  <span key={`${item.label}-${index}`} className="shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-[#4C5F59]">
-                    {formatPresetLine(item)} {item.label}
-                  </span>
-                ))}
-              </div>
-            </section>
-          )}
-
-          <div className="grid gap-2 sm:grid-cols-[auto_1fr]">
-            <button
+          <div className={cn("grid gap-2", !initialPreset && "sm:grid-cols-[auto_1fr]")}>
+            {!initialPreset && <button
               type="button"
               onClick={() => setWorkoutFlowStep("activity")}
               className="min-h-12 rounded-full border border-border px-5 text-sm font-semibold text-muted-foreground"
             >
               Back
-            </button>
+            </button>}
             <button
               type="button"
               onClick={handleSetButtonClick}
@@ -3570,7 +3623,7 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-black text-primary-foreground shadow-sm disabled:opacity-60"
             >
               {status === "loading" ? <Loader2 className="h-5 w-5 animate-spin" /> : <Play className="h-5 w-5" />}
-              Start workout
+              {initialPreset ? "Proceed" : "Start workout"}
             </button>
           </div>
         </>
@@ -3873,15 +3926,13 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
                     <div>
                       <p className="text-sm font-semibold">Camera tracking is weak</p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Continue this same mission with {activePreset ? "Audio Cue Mode" : activeTrackingProfile.motion ? "Motion Mode" : "Tap-to-Rep"} without restarting.
+                        Continue this same mission with Audio Cue Mode without restarting.
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => {
-                        if (activePreset) void chooseTrackingMode("interactive", "audio");
-                        else if (activeTrackingProfile.motion) void chooseTrackingMode("motion");
-                        else void chooseTrackingMode("interactive", "tap");
+                        void chooseTrackingMode("interactive", "audio");
                       }}
                       className="shrink-0 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
                     >
@@ -4154,7 +4205,7 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
         </div>
       )}
 
-      {showTrackingPicker && (
+      {showTrackingPicker && !cameraOnly && (
         <div className="fixed inset-0 z-50 flex items-end bg-black/45 p-3 sm:items-center sm:justify-center">
           <div className="max-h-[90vh] w-full overflow-y-auto rounded-[24px] bg-white p-5 shadow-xl sm:max-w-xl dark:bg-card">
             <div className="flex items-start justify-between gap-4">
@@ -4189,31 +4240,15 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
             </button>
 
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => void chooseTrackingMode("camera")}
-                className="min-h-[118px] rounded-[20px] border border-border bg-background p-4 text-left transition hover:border-primary/50"
-              >
-                <span className="block text-sm font-black text-foreground">Camera Coach</span>
-                <span className="mt-1 block text-xs leading-5 text-muted-foreground">Automatic rep counting plus form guidance.</span>
-                <span className="mt-3 block text-xs font-semibold text-primary">4x points multiplier</span>
-              </button>
-
-              {!activePreset && (
+              {canUseCameraMode && (
                 <button
                   type="button"
-                  disabled={!activeTrackingProfile.motion}
-                  onClick={() => void chooseTrackingMode("motion")}
-                  className={cn(
-                    "min-h-[118px] rounded-[20px] border border-border bg-background p-4 text-left transition hover:border-primary/50",
-                    !activeTrackingProfile.motion && "cursor-not-allowed opacity-50"
-                  )}
+                  onClick={() => void chooseTrackingMode("camera")}
+                  className="min-h-[118px] rounded-[20px] border border-border bg-background p-4 text-left transition hover:border-primary/50"
                 >
-                  <span className="block text-sm font-black text-foreground">Phone Motion</span>
-                  <span className="mt-1 block text-xs leading-5 text-muted-foreground">Uses your phone sensors to track movement.</span>
-                  <span className="mt-3 block text-xs font-semibold text-primary">
-                    {activeTrackingProfile.motion ? "4x points multiplier" : "Not ideal for this exercise"}
-                  </span>
+                  <span className="block text-sm font-black text-foreground">Camera Coach</span>
+                  <span className="mt-1 block text-xs leading-5 text-muted-foreground">Automatic rep counting plus form guidance.</span>
+                  <span className="mt-3 block text-xs font-semibold text-primary">4x points multiplier</span>
                 </button>
               )}
             </div>
@@ -4223,7 +4258,7 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
                 Interactive options
               </p>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {INTERACTIVE_OPTIONS.filter((option) => !activePreset || option.mode === "audio").map((option) => (
+                {INTERACTIVE_OPTIONS.filter((option) => option.mode === "audio").map((option) => (
                   <button
                     key={option.mode}
                     type="button"
@@ -4316,7 +4351,7 @@ export function WorkoutAnalyzerMode({ experience }: { experience?: AnalyzerTab }
               </div>
               <div className="rounded-[18px] bg-[#F7FAF9] p-4">
                 <p className="text-xs font-black uppercase tracking-[0.14em] text-[#6B7773]">Tracking modes</p>
-                <p className="mt-2 text-sm font-bold leading-5 text-[#17201E]">{getPresetTrackingModes(selectedPreset).join(" • ")}</p>
+                <p className="mt-2 text-sm font-bold leading-5 text-[#17201E]">{getPresetTrackingModes(selectedPreset, !disableCamera).join(" • ")}</p>
               </div>
             </div>
 

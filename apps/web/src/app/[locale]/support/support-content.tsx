@@ -25,11 +25,11 @@ const resources = [
 const faqs = [
   {
     q: "How do I reset my password?",
-    a: "Use Supabase email authentication when configured, or contact support@openhealth.blog and we will help you recover access.",
+    a: "Use Supabase email authentication when configured, or contact fitnmovenp@gmail.com and we will help you recover access.",
   },
   {
     q: "How do I delete my account?",
-    a: "Contact support@openhealth.blog. After identity verification, your account and associated personal data can be deleted.",
+    a: "Contact fitnmovenp@gmail.com. After identity verification, your account and associated personal data can be deleted.",
   },
   {
     q: "Is this a medical diagnosis app?",
@@ -66,8 +66,8 @@ export function SupportContent() {
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               Email us for setup issues, account questions, or feature suggestions.
             </p>
-            <a href="mailto:support@openhealth.blog" className="mt-5 inline-block text-sm font-semibold text-primary">
-              support@openhealth.blog
+            <a href="mailto:fitnmovenp@gmail.com" className="mt-5 inline-block text-sm font-semibold text-primary">
+              fitnmovenp@gmail.com
             </a>
           </div>
           <div className="rounded-2xl border border-border bg-white p-6 dark:bg-card">

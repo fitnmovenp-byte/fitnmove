@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Dumbbell, Images, RotateCcw, Sparkles } from "lucide-react";
+import { Dumbbell, RotateCcw, Sparkles } from "lucide-react";
 import {
   HeatmapLegend,
   MuscleMapWidget,
@@ -15,7 +15,6 @@ import {
   formatMuscleName,
   getDecayedMuscleScore,
   getMuscleSuggestion,
-  getWorkoutForMuscle,
   type MuscleTrainingProfile,
 } from "@/lib/exercise-media";
 
@@ -47,7 +46,6 @@ export function HubMuscleMap({ compact = false }: HubMuscleMapProps) {
   const [trainingProfile, setTrainingProfile] = useState<MuscleTrainingProfile>({});
 
   const primaryMuscle = selectedMuscles[0] ?? null;
-  const workout = primaryMuscle ? getWorkoutForMuscle(primaryMuscle) : null;
   const primaryProfile = primaryMuscle ? trainingProfile[primaryMuscle] : undefined;
   const primaryScore = primaryMuscle && primaryProfile ? getDecayedMuscleScore(primaryProfile) : 0;
   const primarySuggestion = primaryMuscle
@@ -92,6 +90,7 @@ export function HubMuscleMap({ compact = false }: HubMuscleMapProps) {
     if (!mapContainerRef.current || (!compact && !legendContainerRef.current)) return;
 
     mapContainerRef.current.innerHTML = "";
+    mapContainerRef.current.style.touchAction = "pan-y";
     if (legendContainerRef.current) legendContainerRef.current.innerHTML = "";
 
     const map = new MuscleMapWidget(mapContainerRef.current, {
@@ -177,7 +176,7 @@ export function HubMuscleMap({ compact = false }: HubMuscleMapProps) {
         <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_150px] sm:items-center">
           <div
             ref={mapContainerRef}
-            className="h-[300px] overflow-hidden rounded-[18px] border border-white/12 bg-white/[0.06] sm:h-[250px]"
+            className="h-[300px] touch-pan-y overflow-hidden rounded-[18px] border border-white/12 bg-white/[0.06] sm:h-[250px]"
           />
           <div className="min-w-0">
             <div className="rounded-[16px] bg-white/10 p-3">
@@ -191,23 +190,14 @@ export function HubMuscleMap({ compact = false }: HubMuscleMapProps) {
               <p className="mt-2 text-xs font-bold text-[#EAF8F4]">{primarySuggestion}</p>
             </div>
             <div className="mt-3 grid gap-2">
-              {primaryMuscle && workout ? (
-                <>
-                  <Link
-                    href={`/hub/muscle/${encodeURIComponent(primaryMuscle)}`}
-                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-white px-3 text-xs font-black text-[#15483F]"
-                  >
-                    <Images className="h-4 w-4" />
-                    See more
-                  </Link>
-                  <Link
-                    href={`/hub/workout/quick?exercise=${workout.exercise}&tracking=manual&muscle=${encodeURIComponent(primaryMuscle)}`}
-                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#20C7A4] px-3 text-xs font-black text-white"
-                  >
-                    <Dumbbell className="h-4 w-4" />
-                    Train
-                  </Link>
-                </>
+              {primaryMuscle ? (
+                <Link
+                  href={`/hub/workout/quick?muscle=${encodeURIComponent(primaryMuscle)}`}
+                  className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#20C7A4] px-3 text-xs font-black text-white"
+                >
+                  <Dumbbell className="h-4 w-4" />
+                  Train
+                </Link>
               ) : (
                 <span className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-white/10 px-3 text-xs font-black text-white/58">
                   Select a muscle first
@@ -260,7 +250,7 @@ export function HubMuscleMap({ compact = false }: HubMuscleMapProps) {
         <div>
           <div
             ref={mapContainerRef}
-            className="h-[520px] min-h-[420px] overflow-hidden rounded-[18px] border border-[#E3EAE7] bg-[#F7FAF9] sm:h-[620px]"
+            className="h-[520px] min-h-[420px] touch-pan-y overflow-hidden rounded-[18px] border border-[#E3EAE7] bg-[#F7FAF9] sm:h-[620px]"
           />
           <div ref={legendContainerRef} className="mt-3 h-10 px-1" />
         </div>
@@ -283,23 +273,14 @@ export function HubMuscleMap({ compact = false }: HubMuscleMapProps) {
               <p className="mt-2 text-xs font-bold text-[#15483F]">{primarySuggestion}</p>
             </div>
             <div className="mt-4 grid gap-2">
-              {primaryMuscle && workout ? (
-                <>
-                  <Link
-                    href={`/hub/muscle/${encodeURIComponent(primaryMuscle)}`}
-                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#20C7A4] px-4 text-sm font-black text-white transition hover:bg-[#1BB392]"
-                  >
-                    <Images className="h-4 w-4" />
-                    See more exercises
-                  </Link>
-                  <Link
-                    href={`/hub/workout/quick?exercise=${workout.exercise}&tracking=manual&muscle=${encodeURIComponent(primaryMuscle)}`}
-                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#15483F] px-4 text-sm font-black text-white transition hover:bg-[#123F37]"
-                  >
-                    <Dumbbell className="h-4 w-4" />
-                    Train {workout.label}
-                  </Link>
-                </>
+              {primaryMuscle ? (
+                <Link
+                  href={`/hub/workout/quick?muscle=${encodeURIComponent(primaryMuscle)}`}
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#15483F] px-4 text-sm font-black text-white transition hover:bg-[#123F37]"
+                >
+                  <Dumbbell className="h-4 w-4" />
+                  Train
+                </Link>
               ) : (
                 <span className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#EAF8F4] px-4 text-sm font-black text-[#6B7773]">
                   Select a muscle first

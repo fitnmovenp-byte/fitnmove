@@ -91,16 +91,16 @@ const DAILY_TASK_POOL: DailyTask[] = [
     medal: { code: "pushup-spark-20", name: "Push-up Spark", tier: "bronze", points: 20 },
   },
   {
-    key: "bicep-curls-10",
-    title: "10 bicep curls",
-    description: "A short verified curl set to build consistency.",
+    key: "crunches-20",
+    title: "20 crunches",
+    description: "Build core strength with a clip-guided crunch set.",
     category: "Task",
-    area: "Strength",
+    area: "Core",
     difficulty: "steady",
     actionType: "analyzer",
-    exerciseKey: "bicepCurl",
-    targetReps: 10,
-    medal: { code: "curl-starter-10", name: "Curl Starter", tier: "bronze", points: 12 },
+    exerciseKey: "crunch",
+    targetReps: 20,
+    medal: { code: "crunch-spark-20", name: "Crunch Spark", tier: "bronze", points: 18 },
   },
   {
     key: "squats-20",
@@ -115,60 +115,28 @@ const DAILY_TASK_POOL: DailyTask[] = [
     medal: { code: "squat-spark-20", name: "Squat Spark", tier: "bronze", points: 18 },
   },
   {
-    key: "log-main-meal",
-    title: "Log one main meal",
-    description: "Complete this inside FitNMove so your day has useful nutrition context.",
+    key: "leg-raises-16",
+    title: "16 leg raises",
+    description: "A clip-guided lower-core set for your daily win.",
     category: "Task",
-    area: "Nutrition",
-    difficulty: "steady",
-    actionType: "onsite",
-    medal: { code: "mindful-plate", name: "Mindful Plate Badge", tier: "bronze", points: 15 },
-  },
-  {
-    key: "walk-800m",
-    title: "Walk 800 m",
-    description: "An easy GPS walk that also updates your food guide.",
-    category: "Task",
-    area: "Movement",
-    difficulty: "steady",
-    actionType: "tracker",
-    targetDistanceMeters: 800,
-    medal: { code: "walk-starter-800", name: "Walk Starter", tier: "bronze", points: 16 },
-  },
-  {
-    key: "run-1k",
-    title: "Run or walk 1 km",
-    description: "A short outdoor movement task verified by the tracker.",
-    category: "Task",
-    area: "Movement",
-    difficulty: "steady",
-    actionType: "tracker",
-    targetDistanceMeters: 1000,
-    medal: { code: "one-k-spark", name: "1K Spark", tier: "bronze", points: 22 },
-  },
-  {
-    key: "squats-15",
-    title: "15 squats",
-    description: "A quick lower-body set with verified camera reps.",
-    category: "Task",
-    area: "Strength",
+    area: "Core",
     difficulty: "steady",
     actionType: "analyzer",
-    exerciseKey: "squat",
-    targetReps: 15,
-    medal: { code: "squat-starter-15", name: "Squat Starter", tier: "bronze", points: 14 },
+    exerciseKey: "legRaise",
+    targetReps: 16,
+    medal: { code: "leg-raise-starter-16", name: "Leg Raise Starter", tier: "bronze", points: 16 },
   },
   {
-    key: "jumping-jacks-30",
-    title: "30 jumping jacks",
-    description: "A light cardio burst counted by the analyzer.",
+    key: "mountain-climbers-30",
+    title: "30 mountain climbers",
+    description: "A clip-guided cardio burst for abs and shoulders.",
     category: "Task",
     area: "Cardio",
     difficulty: "steady",
     actionType: "analyzer",
-    exerciseKey: "jumpingJacks",
+    exerciseKey: "mountainClimbers",
     targetReps: 30,
-    medal: { code: "jack-spark-30", name: "Jack Spark", tier: "bronze", points: 18 },
+    medal: { code: "climber-spark-30", name: "Climber Spark", tier: "bronze", points: 18 },
   },
   {
     key: "plank-hold-6",
@@ -198,40 +166,40 @@ const WEEKLY_MISSION_POOL: DailyTask[] = [
     medal: { code: "hundred-rep-crown", name: "Hundred Rep Crown", tier: "platinum", points: 150 },
   },
   {
-    key: "pushups-500",
-    title: "500 push-ups",
-    description: "A mission built for the very top of the leaderboard.",
+    key: "pushups-1000",
+    title: "1,000 push-ups",
+    description: "Every push-up completed in Quick Workout or Programs counts this week.",
     category: "Mission",
     area: "Elite",
     difficulty: "elite",
     actionType: "analyzer",
     exerciseKey: "pushup",
-    targetReps: 500,
-    medal: { code: "pushup-legend-500", name: "Push-up Legend", tier: "platinum", points: 900 },
+    targetReps: 1000,
+    medal: { code: "pushup-legend-1000", name: "Push-up Legend", tier: "platinum", points: 1200 },
   },
   {
-    key: "bicep-curls-100",
-    title: "100 bicep curls",
-    description: "A hard curl mission verified by the analyzer.",
+    key: "crunches-200",
+    title: "200 crunches",
+    description: "Every crunch from your clip-guided workouts counts this week.",
     category: "Mission",
     area: "Elite",
     difficulty: "strong",
     actionType: "analyzer",
-    exerciseKey: "bicepCurl",
-    targetReps: 100,
-    medal: { code: "curl-forge-100", name: "Curl Forge Medal", tier: "gold", points: 160 },
+    exerciseKey: "crunch",
+    targetReps: 200,
+    medal: { code: "crunch-forge-200", name: "Crunch Forge Medal", tier: "gold", points: 200 },
   },
   {
-    key: "pullups-30",
-    title: "30 pull-ups",
-    description: "A high-strength mission for verified pull-up reps.",
+    key: "mountain-climbers-300",
+    title: "300 mountain climbers",
+    description: "Build a powerful core and cardio base across your weekly workouts.",
     category: "Mission",
     area: "Elite",
     difficulty: "elite",
     actionType: "analyzer",
-    exerciseKey: "pullup",
-    targetReps: 30,
-    medal: { code: "bar-commander-30", name: "Bar Commander", tier: "platinum", points: 220 },
+    exerciseKey: "mountainClimbers",
+    targetReps: 300,
+    medal: { code: "climber-commander-300", name: "Climber Commander", tier: "platinum", points: 240 },
   },
   {
     key: "distance-5k",
@@ -309,7 +277,8 @@ function weekStartIsoDate(isoDate = todayIsoDate()) {
 }
 
 function pickRotatingTasks(pool: DailyTask[], count: number, seed: number) {
-  return Array.from({ length: Math.min(count, pool.length) }, (_, index) => pool[(seed + index * 2) % pool.length]);
+  // Advance one slot at a time so a short pool never returns the same task twice.
+  return Array.from({ length: Math.min(count, pool.length) }, (_, index) => pool[(seed + index) % pool.length]);
 }
 
 function getActiveTasks(taskDate = todayIsoDate()) {
@@ -698,6 +667,83 @@ export const tasksRouter = router({
         completedAt,
       });
 
+      const matchingTasks = getActiveTasks(taskDate).filter(
+        (task) => task.actionType === "analyzer" && task.exerciseKey === input.exerciseKey && task.targetReps
+      );
+      const completedMissions: string[] = [];
+
+      for (const task of matchingTasks) {
+        const completionDate = taskCompletionDate(task, taskDate);
+        const existing = await ctx.db
+          .select()
+          .from(healthTaskCompletions)
+          .where(
+            and(
+              eq(healthTaskCompletions.userId, ctx.user.id),
+              eq(healthTaskCompletions.taskDate, completionDate),
+              eq(healthTaskCompletions.taskKey, task.key)
+            )
+          )
+          .limit(1)
+          .then((rows) => rows[0]);
+
+        if (existing?.completedAt) continue;
+
+        const countedReps = Math.min(task.targetReps!, (existing?.countedReps ?? 0) + input.countedReps);
+        const completed = countedReps >= task.targetReps!;
+        const medalPoints = completed
+          ? applyProofMultiplier(task.medal.points, input.source)
+          : (existing?.medalPoints ?? task.medal.points);
+
+        await ctx.db
+          .insert(healthTaskCompletions)
+          .values({
+            userId: ctx.user.id,
+            taskDate: completionDate,
+            taskKey: task.key,
+            title: task.title,
+            category: task.category,
+            status: completed ? "completed" : "started",
+            exerciseKey: task.exerciseKey,
+            targetReps: task.targetReps,
+            countedReps,
+            medalCode: task.medal.code,
+            medalName: task.medal.name,
+            medalTier: task.medal.tier,
+            medalPoints,
+            proof: {
+              source: input.source,
+              proofStrength,
+              countedReps,
+              workoutSetReps: input.countedReps,
+              seconds: input.seconds,
+            },
+            completedAt: completed ? completedAt : null,
+          })
+          .onConflictDoUpdate({
+            target: [
+              healthTaskCompletions.userId,
+              healthTaskCompletions.taskDate,
+              healthTaskCompletions.taskKey,
+            ],
+            set: {
+              status: completed ? "completed" : "started",
+              countedReps,
+              medalPoints,
+              proof: {
+                source: input.source,
+                proofStrength,
+                countedReps,
+                workoutSetReps: input.countedReps,
+                seconds: input.seconds,
+              },
+              completedAt: completed ? completedAt : null,
+            },
+          });
+
+        if (completed) completedMissions.push(task.title);
+      }
+
       await sendTaskPush(
         ctx.user.id,
         "Verified workout saved",
@@ -709,6 +755,7 @@ export const tasksRouter = router({
       return {
         success: true,
         points,
+        completedMissions,
         message: `+${points} training point${points === 1 ? "" : "s"} earned.`,
       };
     }),
@@ -798,7 +845,7 @@ export const tasksRouter = router({
     .input(
       z
         .object({
-          metric: z.enum(["overall", "pushup", "bicepCurl", "pullup", "squat", "plank"]).default("overall"),
+          metric: z.enum(["overall", "pushup", "pullup", "squat", "plank", "runWalk"]).default("overall"),
         })
         .optional()
     )
@@ -807,9 +854,11 @@ export const tasksRouter = router({
     const where =
       metric === "overall"
         ? isNotNull(healthTaskCompletions.completedAt)
-        : and(isNotNull(healthTaskCompletions.completedAt), eq(healthTaskCompletions.exerciseKey, metric));
+        : metric === "runWalk"
+          ? and(isNotNull(healthTaskCompletions.completedAt), sql`${healthTaskCompletions.taskKey} like 'distance-%'`)
+          : and(isNotNull(healthTaskCompletions.completedAt), eq(healthTaskCompletions.exerciseKey, metric));
     const scoreSql =
-      metric === "overall"
+      metric === "overall" || metric === "runWalk"
         ? sql<number>`coalesce(sum(${healthTaskCompletions.medalPoints}), 0)`
         : sql<number>`coalesce(sum(${healthTaskCompletions.countedReps}), 0)`;
     const rows = await ctx.db
@@ -825,9 +874,9 @@ export const tasksRouter = router({
         missionCount: sql<number>`sum(case when ${healthTaskCompletions.category} = 'Mission' then 1 else 0 end)`,
         eliteMedals: sql<number>`sum(case when ${healthTaskCompletions.medalTier} = 'platinum' then 1 else 0 end)`,
         pushups: sql<number>`coalesce(sum(case when ${healthTaskCompletions.exerciseKey} = 'pushup' then ${healthTaskCompletions.countedReps} else 0 end), 0)`,
-        bicepCurls: sql<number>`coalesce(sum(case when ${healthTaskCompletions.exerciseKey} = 'bicepCurl' then ${healthTaskCompletions.countedReps} else 0 end), 0)`,
         pullups: sql<number>`coalesce(sum(case when ${healthTaskCompletions.exerciseKey} = 'pullup' then ${healthTaskCompletions.countedReps} else 0 end), 0)`,
         squats: sql<number>`coalesce(sum(case when ${healthTaskCompletions.exerciseKey} = 'squat' then ${healthTaskCompletions.countedReps} else 0 end), 0)`,
+        planks: sql<number>`coalesce(sum(case when ${healthTaskCompletions.exerciseKey} = 'plank' then ${healthTaskCompletions.countedReps} else 0 end), 0)`,
       })
       .from(healthTaskCompletions)
       .innerJoin(users, eq(healthTaskCompletions.userId, users.id))
@@ -861,6 +910,7 @@ export const tasksRouter = router({
         bicepCurls: sql<number>`coalesce(sum(case when ${healthTaskCompletions.exerciseKey} = 'bicepCurl' then ${healthTaskCompletions.countedReps} else 0 end), 0)`,
         pullups: sql<number>`coalesce(sum(case when ${healthTaskCompletions.exerciseKey} = 'pullup' then ${healthTaskCompletions.countedReps} else 0 end), 0)`,
         squats: sql<number>`coalesce(sum(case when ${healthTaskCompletions.exerciseKey} = 'squat' then ${healthTaskCompletions.countedReps} else 0 end), 0)`,
+        planks: sql<number>`coalesce(sum(case when ${healthTaskCompletions.exerciseKey} = 'plank' then ${healthTaskCompletions.countedReps} else 0 end), 0)`,
       })
       .from(healthTaskCompletions)
       .where(and(eq(healthTaskCompletions.userId, ctx.user.id), isNotNull(healthTaskCompletions.completedAt)))
@@ -889,6 +939,7 @@ export const tasksRouter = router({
       bicepCurls: Number(rows?.bicepCurls ?? 0),
       pullups: Number(rows?.pullups ?? 0),
       squats: Number(rows?.squats ?? 0),
+      planks: Number(rows?.planks ?? 0),
       recentMedals: medals,
     };
   }),

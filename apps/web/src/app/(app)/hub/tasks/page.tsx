@@ -10,7 +10,7 @@ import { trpc } from "@/lib/trpc-client";
 import { RankIcon } from "@/components/ranks/rank-badge";
 import { getRankForPoints } from "@/lib/rank-system";
 
-type Metric = "overall" | "pushup" | "bicepCurl" | "pullup" | "squat" | "plank";
+type Metric = "overall" | "pushup" | "pullup" | "squat" | "plank" | "runWalk";
 type LeaderboardEntry = {
   userId: string;
   name: string | null;
@@ -28,10 +28,10 @@ type LeaderboardEntry = {
 const FILTERS: { value: Metric; label: string; image: string; detail: string }[] = [
   { value: "overall", label: "All", image: "/Workout/leaderboard-banner.png", detail: "All verified points" },
   { value: "pushup", label: "Push-up", image: "/Workout/pushup.png", detail: "Chest, core, control" },
-  { value: "bicepCurl", label: "Curl", image: "/Workout/bicep-curl.png", detail: "Arm strength reps" },
   { value: "pullup", label: "Pull-up", image: "/Workout/bicep-curl.png", detail: "Upper-body strength" },
   { value: "squat", label: "Squat", image: "/Workout/squat.png", detail: "Lower-body power" },
   { value: "plank", label: "Plank", image: "/Workout/plank.png", detail: "Core hold streaks" },
+  { value: "runWalk", label: "Run/walk", image: "/Workout/leaderboard-banner.png", detail: "Distance missions" },
 ];
 
 const PODIUM_ORDER = [2, 1, 3];
@@ -67,11 +67,12 @@ export default function LeaderboardPage() {
 
   const entries = leaderboard ?? [];
   const topThree = entries.slice(0, 3);
-  const rest = entries.slice(3);
+  // Keep the full ranking table visible below the podium so every player and rank can be found.
+  const rest = entries;
   const currentUser = entries.find((entry) => entry.isCurrentUser) ?? null;
-  const scoreLabel = metric === "overall" ? "pts" : "reps";
+  const scoreLabel = metric === "overall" || metric === "runWalk" ? "pts" : "reps";
   const activeFilter = FILTERS.find((item) => item.value === metric) ?? FILTERS[0];
-  const leaderName = entries[0]?.name ?? "Open spot";
+  const leaderName = entries[0]?.name ?? "No player yet";
 
   useEffect(() => {
     setMounted(true);
@@ -141,13 +142,13 @@ export default function LeaderboardPage() {
 
             <div className="grid grid-cols-3 gap-2">
               {[
-                ["Leader", leaderName],
+                ["Top scorer", leaderName],
                 ["Board", activeFilter.label],
-                ["Season", seasonCountdown()],
+                ["Season ends", seasonCountdown()],
               ].map(([label, value]) => (
                 <div key={label} className="min-w-0 rounded-2xl border border-white/14 bg-[#07110F]/38 p-3 backdrop-blur">
                   <p className="text-[10px] font-black uppercase tracking-[0.12em] text-white/50">{label}</p>
-                  <p className="mt-1 truncate text-sm font-black text-white">{value}</p>
+                  <p className="mt-1 break-words text-sm font-black leading-tight text-white">{value}</p>
                 </div>
               ))}
             </div>
@@ -158,8 +159,8 @@ export default function LeaderboardPage() {
         <section className="mt-6 rounded-[30px] border border-white bg-white p-7 shadow-[0_18px_50px_rgba(23,32,30,0.10)] sm:mt-8 sm:p-8 lg:mt-10 lg:p-10">
           <div className="flex items-center justify-between gap-4 px-1 sm:px-2 lg:px-3">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Top competitors</p>
-              <h2 className="mt-1 text-xl font-black text-[#17201E]">TOP PERFORMER</h2>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Leaderboard</p>
+              <h2 className="mt-1 text-xl font-black text-[#17201E]">Top 3 players</h2>
             </div>
             <div className="inline-flex items-center gap-1.5 rounded-full border border-[#DDEAE5] bg-[#F7FAF9] px-3 py-1.5 text-xs font-black text-[#123F37]">
               <Medal className="h-3.5 w-3.5 text-primary" />
@@ -169,12 +170,6 @@ export default function LeaderboardPage() {
 
           <div className="relative mx-auto mt-10 flex min-h-[278px] max-w-[540px] items-end justify-center overflow-hidden rounded-[28px] px-3 pt-10 sm:mt-12">
             <motion.div
-              aria-hidden="true"
-              animate={{ opacity: [0.25, 0.5, 0.25], scale: [0.92, 1.05, 0.92] }}
-              transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute left-1/2 top-12 h-40 w-40 -translate-x-1/2 rounded-full bg-[#B8F34A]/20 blur-3xl"
-            />
-            <motion.div
               initial={{ opacity: 0, y: 24, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
@@ -182,12 +177,6 @@ export default function LeaderboardPage() {
             >
               <div className="h-[112px] bg-[linear-gradient(180deg,#1B8E70,#0D6C54)]" />
               <div className="relative h-[154px] overflow-hidden bg-[linear-gradient(180deg,#D7FF8A,#20C7A4_40%,#157D61)]">
-                <motion.span
-                  aria-hidden="true"
-                  animate={{ x: ["-140%", "160%"] }}
-                  transition={{ duration: 2.9, repeat: Infinity, repeatDelay: 1.4, ease: "easeInOut" }}
-                  className="absolute inset-y-0 w-12 rotate-12 bg-white/35 blur-md"
-                />
               </div>
               <div className="h-[112px] bg-[linear-gradient(180deg,#1B8E70,#0D6C54)]" />
             </motion.div>
@@ -211,7 +200,7 @@ export default function LeaderboardPage() {
             <TeamChip label="Red" score={teamState.red.points} active={teamState.leader.teamColor === "red"} tone="red" />
             <div className="flex min-w-0 flex-col items-center justify-center rounded-2xl border border-[#35D39A]/15 bg-[#10372D] px-1 text-center shadow-sm">
               <p className="text-sm font-black uppercase text-[#B8F34A]">VS</p>
-              <p className="mt-0.5 max-w-full truncate text-[9px] font-black uppercase text-[#C0D1CA]">{teamState.gap.toLocaleString()} gap</p>
+              <p className="mt-0.5 max-w-full truncate text-[9px] font-black uppercase text-[#C0D1CA]">{teamState.gap.toLocaleString()} point lead</p>
             </div>
             <TeamChip label="Blue" score={teamState.blue.points} active={teamState.leader.teamColor === "blue"} tone="blue" />
           </div>
@@ -260,6 +249,10 @@ export default function LeaderboardPage() {
           </div>
 
           <div className="mt-6 overflow-hidden rounded-[20px] border border-[#E3EAE7]">
+            <div className="border-b border-[#E3EAE7] bg-white px-4 pb-3 pt-1 sm:px-5">
+              <h3 className="text-base font-black text-[#17201E]">Everyone&apos;s ranking</h3>
+              <p className="mt-0.5 text-xs font-semibold text-muted-foreground">See every player&apos;s current position and score.</p>
+            </div>
             <div className="grid grid-cols-[48px_minmax(0,1fr)_80px] bg-[#F7FAF9] px-4 py-3 text-[10px] font-black uppercase tracking-[0.12em] text-muted-foreground">
               <span>Rank</span>
               <span>Athlete</span>
@@ -316,7 +309,7 @@ function TeamChip({ label, score, active, tone }: { label: string; score: number
         <p className="text-[10px] font-black uppercase">Team {label}</p>
       </div>
       <p className="mt-1 truncate text-xl font-black leading-none tabular-nums text-[#F4F8F5]">{score.toLocaleString()}</p>
-      <p className="mt-0.5 text-[9px] font-black uppercase text-[#C0D1CA]">{active ? "Leading" : "Chasing"}</p>
+      <p className="mt-0.5 text-[9px] font-black uppercase text-[#C0D1CA]">{active ? "Leading" : "Behind"}</p>
     </div>
   );
 }
@@ -330,26 +323,21 @@ function PodiumSpot({ entry, scoreLabel }: { entry: LeaderboardEntry; scoreLabel
         hidden: { opacity: 0, y: 32, scale: 0.92, filter: "blur(8px)" },
         show: {
           opacity: 1,
-          y: isChampion ? [0, -8, 0] : 0,
+          y: 0,
           scale: 1,
           filter: "blur(0px)",
           transition: {
-            duration: 0.7,
+            duration: 0.45,
             ease: [0.22, 1, 0.36, 1],
-            y: { duration: 3.6, repeat: Infinity, ease: "easeInOut" },
           },
         },
       }}
-      whileHover={{ y: -8, scale: 1.03 }}
       className={cn("flex min-w-0 flex-col items-center text-center text-white", isChampion ? "pb-4" : "pb-3")}
     >
       {isChampion ? (
-        <motion.div
-          animate={{ rotate: [-3, 3, -3], y: [0, -3, 0] }}
-          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-        >
+        <div>
           <Crown className="mb-1 h-9 w-9 fill-accent text-accent drop-shadow-[0_0_14px_rgba(184,243,74,0.42)]" />
-        </motion.div>
+        </div>
       ) : (
         <div className="h-7" />
       )}
@@ -367,7 +355,7 @@ function PodiumSpot({ entry, scoreLabel }: { entry: LeaderboardEntry; scoreLabel
           {entry.rank}
         </span>
       </div>
-      <h2 className={cn("mt-4 w-full truncate px-1 font-black", isChampion ? "text-sm" : "text-xs")}>{entry.name ?? "FitNMove"}</h2>
+      <h2 className={cn("mt-4 w-full break-words px-1 font-black leading-tight", isChampion ? "text-sm" : "text-xs")}>{entry.name ?? "FitNMove"}</h2>
       <p className={cn("mt-1 font-black tabular-nums", isChampion ? "text-accent" : "text-primary")}>{Number(entry.score).toLocaleString()}</p>
       <p className="mt-0.5 w-full truncate px-1 text-[10px] font-semibold text-white/58">{scoreLabel} / {entry.rankTitle}</p>
     </motion.article>
@@ -388,9 +376,9 @@ function EmptyPodiumSpot({ rank }: { rank: number }) {
       <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-white/40 bg-white/14 text-lg font-black">
         {rank}
       </div>
-      <p className="mt-4 text-xs font-black">Open spot</p>
+      <p className="mt-4 text-xs font-black">No player yet</p>
       <p className="mt-1 text-xs font-black tabular-nums">0</p>
-      <p className="mt-0.5 text-[10px] font-semibold text-white/50">complete a task</p>
+      <p className="mt-0.5 text-[10px] font-semibold text-white/50">Complete a task to rank</p>
     </motion.article>
   );
 }
@@ -409,7 +397,7 @@ function RankRow({ entry, scoreLabel }: { entry: LeaderboardEntry; scoreLabel: s
         </span>
       </div>
       <div className="min-w-0">
-        <p className="truncate text-sm font-black text-foreground">{entry.name ?? "FitNMove"}</p>
+        <p className="break-words text-sm font-black leading-tight text-foreground">{entry.name ?? "FitNMove"}</p>
         <p className="truncate text-xs font-semibold text-muted-foreground">{teamLabel(entry.teamColor)} / {entry.rankTitle}</p>
         <p className="mt-0.5 truncate text-[10px] font-bold text-[#5F6F69]">
           +{Number(entry.todayPoints).toLocaleString()} today / {entry.eliteMedals} elite medals
