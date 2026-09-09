@@ -865,6 +865,7 @@ export const tasksRouter = router({
       .select({
         userId: healthTaskCompletions.userId,
         name: users.name,
+        image: users.image,
         teamColor: userProfiles.teamColor,
         medalCount: sql<number>`count(${healthTaskCompletions.id})`,
         points: sql<number>`coalesce(sum(${healthTaskCompletions.medalPoints}), 0)`,
@@ -882,7 +883,7 @@ export const tasksRouter = router({
       .innerJoin(users, eq(healthTaskCompletions.userId, users.id))
       .leftJoin(userProfiles, eq(healthTaskCompletions.userId, userProfiles.userId))
       .where(where)
-      .groupBy(healthTaskCompletions.userId, users.name, userProfiles.teamColor)
+      .groupBy(healthTaskCompletions.userId, users.name, users.image, userProfiles.teamColor)
       .orderBy(
         desc(scoreSql),
         desc(sql<number>`sum(case when ${healthTaskCompletions.category} = 'Mission' then 1 else 0 end)`),

@@ -4,18 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { LogIn } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-const navLinks = [
-  { path: "/today", label: "Train" },
-  { path: "/hub/track", label: "Move" },
-  { path: "/hub/tasks", label: "Compete" },
-  { path: "/learn", label: "Learn" },
-  { path: "/pro", label: "Pro" },
-];
+import { LoginDialog } from "@/components/auth/login-dialog";
+import { PaymentActivationModal } from "@/components/pro/payment-activation-modal";
+import { useState } from "react";
 
 export function SiteNav() {
   const pathname = usePathname();
+  const [showLogin, setShowLogin] = useState(false);
+  const [showPro, setShowPro] = useState(false);
 
   return (
     <nav className="fixed left-0 right-0 top-0 z-50 border-b border-[#153D33] bg-[#041A15]/92 backdrop-blur supports-[backdrop-filter]:bg-[#041A15]/88">
@@ -31,23 +27,10 @@ export function SiteNav() {
         </Link>
 
         <div className="hidden items-center gap-1 lg:flex">
-          {navLinks.map(({ path, label }) => {
-            const isActive = path === "/" ? pathname === "/" : pathname.startsWith(path);
-            return (
-              <Link
-                key={path}
-                href={path}
-                className={cn(
-                  "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-[#10372D] text-[#B8F34A]"
-                    : "text-[#C0D1CA] hover:bg-[#10372D] hover:text-[#B8F34A]",
-                )}
-              >
-                {label}
-              </Link>
-            );
-          })}
+          <Link href="/" className="rounded-lg px-3 py-2 text-sm font-medium text-[#C0D1CA] hover:bg-[#10372D] hover:text-[#B8F34A]">Home</Link>
+          <Link href="/#features" className="rounded-lg px-3 py-2 text-sm font-medium text-[#C0D1CA] hover:bg-[#10372D] hover:text-[#B8F34A]">Features</Link>
+          <a href="#community" className="rounded-lg px-3 py-2 text-sm font-medium text-[#C0D1CA] hover:bg-[#10372D] hover:text-[#B8F34A]">Community</a>
+          <button type="button" onClick={() => setShowPro(true)} className="rounded-lg px-3 py-2 text-sm font-medium text-[#C0D1CA] hover:bg-[#10372D] hover:text-[#B8F34A]">Pro</button>
         </div>
 
         <div className="flex items-center gap-2">
@@ -60,6 +43,8 @@ export function SiteNav() {
           </Link>
         </div>
       </div>
+      <LoginDialog open={showLogin} onOpenChange={setShowLogin} />
+      {showPro && <PaymentActivationModal onSignup={() => { setShowPro(false); setShowLogin(true); }} />}
     </nav>
   );
 }

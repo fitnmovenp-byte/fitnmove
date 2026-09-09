@@ -71,12 +71,14 @@ function toAuthData(data: { session: Session | null; user: User | null }) {
   };
 }
 
-function cacheSessionData(session: Session | null, user?: User | null) {
+function cacheSessionData(session: Session | null, user?: User | null, remember = true) {
   const nextData = toSessionData(session, user);
   if (nextData) {
-    localStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(nextData));
+    if (remember) localStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(nextData));
+    else sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(nextData));
   } else {
     localStorage.removeItem(SESSION_CACHE_KEY);
+    sessionStorage.removeItem(SESSION_CACHE_KEY);
   }
   return nextData;
 }
@@ -102,8 +104,15 @@ export const authClient = {
   useSession,
 };
 
+export async function updateAvatar(image: string) {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return { error: new Error("Supabase is not configured.") };
+  const { error } = await supabase.auth.updateUser({ data: { avatar_url: image } });
+  return { error };
+}
+
 export const signIn = {
-  email: async ({ email, password }: { email: string; password: string }) => {
+  email: async ({ email, password, remember = true }: { email: string; password: string; remember?: boolean }) => {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) {
       return {
@@ -116,7 +125,7 @@ export const signIn = {
       password,
     });
     if (data.session) {
-      cacheSessionData(data.session, data.user);
+      cacheSessionData(data.session, data.user, remember);
       await syncServerSession(data.session);
     }
     return { data: toAuthData(data), error };
@@ -213,12 +222,13 @@ export function useSession() {
     }
 
     try {
-      const cached = localStorage.getItem(SESSION_CACHE_KEY);
+      const cached = localStorage.getItem(SESSION_CACHE_KEY) ?? sessionStorage.getItem(SESSION_CACHE_KEY);
       if (cached) {
         setData(JSON.parse(cached) as ReturnType<typeof toSessionData>);
       }
     } catch {
-      localStorage.removeItem(SESSION_CACHE_KEY);
+  localStorage.removeItem(SESSION_CACHE_KEY);
+  sessionStorage.removeItem(SESSION_CACHE_KEY);
     }
 
     let active = true;

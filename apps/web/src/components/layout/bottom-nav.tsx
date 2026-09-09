@@ -15,6 +15,7 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  if (pathname.startsWith("/admin")) return null;
 
   return (
     <nav data-testid="bottom-nav" className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#153D33] bg-[#041A15]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-[#041A15]/90 lg:hidden">

@@ -106,6 +106,7 @@ export const adminRouter = router({
           plan: users.plan,
           isActive: users.isActive,
           isAdmin: users.isAdmin,
+          planExpiresAt: users.planExpiresAt,
           createdAt: users.createdAt,
           updatedAt: users.updatedAt,
         })
@@ -114,8 +115,9 @@ export const adminRouter = router({
         .orderBy(desc(users.createdAt))
         .limit(input.limit);
 
-      const completionRows = rows.length
-        ? await ctx.db
+      const [completionRows, tokenRows] = rows.length
+        ? await Promise.all([
+            ctx.db
             .select({
               userId: healthTaskCompletions.userId,
               taskCompletions: count(),
@@ -127,8 +129,21 @@ export const adminRouter = router({
             .catch((error) => {
               console.warn("Admin completion stats unavailable; showing zeroes.", error);
               return [];
-            })
-        : [];
+            }),
+            ctx.db
+              .select({
+                userId: pushTokens.userId,
+                value: count(),
+              })
+              .from(pushTokens)
+              .where(inArray(pushTokens.userId, rows.map((row) => row.id)))
+              .groupBy(pushTokens.userId)
+              .catch((error) => {
+                console.warn("Admin push token stats unavailable; showing zeroes.", error);
+                return [];
+              }),
+          ])
+        : [[], []];
       const completionsByUser = new Map(
         completionRows.map((row) => [
           row.userId,
@@ -139,22 +154,11 @@ export const adminRouter = router({
         ])
       );
 
-      const tokenRows = await ctx.db
-        .select({
-          userId: pushTokens.userId,
-          value: count(),
-        })
-        .from(pushTokens)
-        .groupBy(pushTokens.userId)
-        .catch((error) => {
-          console.warn("Admin push token stats unavailable; showing zeroes.", error);
-          return [];
-        });
       const tokensByUser = new Map(tokenRows.map((row) => [row.userId, row.value]));
 
       return rows.map((row) => ({
         ...row,
-        planExpiresAt: null,
+        planExpiresAt: row.planExpiresAt,
         points: completionsByUser.get(row.id)?.points ?? 0,
         taskCompletions: completionsByUser.get(row.id)?.taskCompletions ?? 0,
         pushTokens: Number(tokensByUser.get(row.id) ?? 0),

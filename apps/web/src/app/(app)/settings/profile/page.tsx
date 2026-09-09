@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Dumbbell, Footprints, Loader2, LogOut, Medal, Shield, ShieldCheck, Trophy, User } from "lucide-react";
+import { ArrowLeft, Camera, Dumbbell, Footprints, Loader2, LogOut, Medal, Shield, ShieldCheck, Trophy, User } from "lucide-react";
 import { RankBadge } from "@/components/ranks/rank-badge";
 import { getRankProgress } from "@/lib/rank-system";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { signOut, useSession } from "@/lib/auth-client";
+import { signOut, updateAvatar, useSession } from "@/lib/auth-client";
 import { trpc } from "@/lib/trpc-client";
-import { updateProfile } from "@/server/actions/profile";
+import { updateProfile, updateProfileImage } from "@/server/actions/profile";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import posthog from "posthog-js";
 import { useTranslation } from "react-i18next";
@@ -40,6 +40,7 @@ export default function ProfilePage() {
   const { t } = useTranslation(["settings", "common"]);
   const { data: session, isPending: sessionPending } = useSession();
   const { data: me } = trpc.user.getMe.useQuery(undefined, { enabled: Boolean(session?.user) });
+  const utils = trpc.useUtils();
   const { data: profile, isLoading: profileLoading } = trpc.user.getProfile.useQuery();
   const { data: achievementStats } = trpc.tasks.getMyStats.useQuery();
   const router = useRouter();
@@ -61,6 +62,9 @@ export default function ProfilePage() {
   const [allergies, setAllergies] = useState("");
   const [initialized, setInitialized] = useState(false);
   const [localDistanceKm, setLocalDistanceKm] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     try {
@@ -75,6 +79,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!initialized && session?.user && profile !== undefined) {
       setName(session.user.name || "");
+      setAvatarUrl(me?.image || session.user.image || "");
       setSex(profile?.sex || "");
       setHeightCm(profile?.heightCm ? String(profile.heightCm) : "");
       setCurrentWeightKg(profile?.currentWeightKg ? String(profile.currentWeightKg) : "");
@@ -88,7 +93,39 @@ export default function ProfilePage() {
       setAllergies(profile?.allergies || "");
       setInitialized(true);
     }
-  }, [session, profile, initialized]);
+  }, [session, profile, initialized, me?.image]);
+
+  // The profile query can resolve before the user record query. Keep the
+  // avatar in sync when the persisted storage URL arrives afterward.
+  useEffect(() => {
+    if (me?.image) setAvatarUrl(me.image);
+  }, [me?.image]);
+
+  const handleAvatarUpload = async (file?: File) => {
+    if (!file) return;
+    setUploadingAvatar(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.set("file", file);
+      formData.set("folder", "avatars");
+      const response = await fetch("/api/upload", { method: "POST", body: formData });
+      const body = await response.json() as { url?: string; error?: string };
+      if (!response.ok || !body.url) throw new Error(body.error || "Could not upload image.");
+      const result = await updateProfileImage(body.url);
+      if (!result.success) throw new Error(result.error);
+      const authResult = await updateAvatar(body.url);
+      if (authResult.error) throw authResult.error;
+      setAvatarUrl(body.url);
+      await utils.user.getMe.invalidate();
+      await utils.tasks.getLeaderboard.invalidate();
+      router.refresh();
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Could not upload image.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const parseList = (value: string) =>
     value
@@ -131,7 +168,7 @@ export default function ProfilePage() {
     posthog.capture("user_logged_out");
     posthog.reset();
     await signOut();
-    router.push("/hub");
+    router.replace("/");
   };
 
   if (sessionPending || profileLoading) return <LoadingSpinner />;
@@ -244,6 +281,15 @@ export default function ProfilePage() {
           </div>
         </div>
         <div className="space-y-5">
+          <div className="flex items-center gap-4 rounded-2xl bg-secondary/50 p-4">
+            {avatarUrl ? <img src={avatarUrl} alt="Your profile" className="h-16 w-16 rounded-2xl object-cover" /> : <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground"><User className="h-7 w-7" /></span>}
+            <div>
+              <p className="font-semibold text-foreground">Profile photo</p>
+              <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, WebP, or HEIC up to 10 MB.</p>
+              <Button type="button" variant="outline" className="mt-3" disabled={uploadingAvatar} onClick={() => avatarInputRef.current?.click()}>{uploadingAvatar ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />} {uploadingAvatar ? "Uploading" : "Choose photo"}</Button>
+              <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic" className="hidden" onChange={(event) => void handleAvatarUpload(event.target.files?.[0])} />
+            </div>
+          </div>
           <Field label={t("profilePage.name")}>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </Field>

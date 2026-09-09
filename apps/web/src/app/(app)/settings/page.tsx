@@ -3,51 +3,31 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import {
   ChevronRight,
-  Crown,
-  GraduationCap,
-  LayoutGrid,
   Lock,
   LogOut,
-  Monitor,
-  Moon,
   ShieldCheck,
-  Sun,
   Trash2,
   User,
 } from "lucide-react";
 import { signOut, useSession } from "@/lib/auth-client";
 import { deleteAccount } from "@/server/actions/account";
-import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 
-const menuItems = [
-  { href: "/settings/profile", labelKey: "settings:profile" as const, icon: User, description: "Personal details and health profile" },
-  { href: "/settings/subscription", labelKey: "settings:subscription" as const, icon: Crown, description: "Plan and billing" },
-  { href: "/settings/coaching", labelKey: "settings:coaching" as const, icon: GraduationCap, description: "Coaching preferences" },
-  { href: "/settings/hub-config", labelKey: "settings:hubConfig" as const, icon: LayoutGrid, description: "Choose visible tools" },
-];
-
-const themeOptions = [
-  { value: "light", labelKey: "theme.light" as const, icon: Sun },
-  { value: "dark", labelKey: "theme.dark" as const, icon: Moon },
-  { value: "system", labelKey: "theme.system" as const, icon: Monitor },
-] as const;
+const menuItems = [{ href: "/settings/profile", labelKey: "settings:profile" as const, icon: User, description: "Personal details and health profile" }];
 
 export default function SettingsPage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
   const { t } = useTranslation(["common", "settings"]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
-    router.push("/hub");
+    router.replace("/");
   };
 
   const handleDeleteAccount = async () => {
@@ -86,27 +66,6 @@ export default function SettingsPage() {
           </div>
         </section>
       )}
-
-      <section className="rounded-3xl border border-border bg-white p-5 shadow-[0_4px_18px_rgba(20,40,30,0.04)] dark:bg-card">
-        <h2 className="text-lg font-semibold text-foreground">{t("theme.label")}</h2>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {themeOptions.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => setTheme(option.value)}
-              className={cn(
-                "flex min-h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors",
-                theme === option.value
-                  ? "border-primary bg-secondary text-primary"
-                  : "border-border bg-background text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <option.icon className="h-4 w-4" strokeWidth={1.8} />
-              {t(option.labelKey)}
-            </button>
-          ))}
-        </div>
-      </section>
 
       <section className="rounded-3xl border border-border bg-white p-3 shadow-[0_4px_18px_rgba(20,40,30,0.04)] dark:bg-card">
         {menuItems.map((item) => (

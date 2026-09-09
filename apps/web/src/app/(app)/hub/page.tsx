@@ -625,7 +625,7 @@ export default function HubPage() {
                     <p className="mt-1 truncate text-xl font-black sm:text-2xl">Let&apos;s move, {firstName}.</p>
                     <p className="mt-1 truncate text-sm font-semibold text-white/68">{todayStatus}</p>
                   </div>
-                  <Link href="/hub/workout/programs" className="col-span-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#20C7A4] px-5 text-sm font-black text-[#041A15] shadow-[0_16px_40px_rgba(32,199,164,0.28)] sm:col-span-1 sm:min-w-[178px]">
+                  <Link href="/hub/workout" className="col-span-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#20C7A4] px-5 text-sm font-black text-[#041A15] shadow-[0_16px_40px_rgba(32,199,164,0.28)] sm:col-span-1 sm:min-w-[178px]">
                     Start Workout
                     <ArrowRight className="h-4 w-4" />
                   </Link>

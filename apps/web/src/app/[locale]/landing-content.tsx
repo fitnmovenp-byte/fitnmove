@@ -74,11 +74,14 @@ const learnTiles = [
 
 function ProductStage() {
   return (
-    <div className="relative mx-auto w-full max-w-[370px] lg:max-w-[420px]">
+    <div className="relative mx-auto w-full max-w-[370px] lg:max-w-[350px]">
       <div className="absolute left-1/2 top-10 h-[84%] w-[72%] -translate-x-1/2 rounded-full border border-primary/15" />
       <div className="absolute left-1/2 top-16 h-[70%] w-[58%] -translate-x-1/2 rounded-full border border-[#3976b9]/15" />
       <div className="landing-phone relative mx-auto overflow-hidden rounded-[28px] border border-[#1A4D40] bg-[#041A15] p-2 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
-        <div className="relative overflow-hidden rounded-[22px] bg-[#07251E]">
+        <div className="relative aspect-[9/16] overflow-hidden rounded-[22px] bg-[#041A15]">
+          <video src="/images/introvid.mp4" autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover" aria-label="FitNMove introduction" />
+          {/* Decorative mobile UI is intentionally omitted: this panel is the intro video only. */}
+          <div className="hidden">
           <div className="relative px-5 pb-5 pt-6">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -91,12 +94,8 @@ function ProductStage() {
             </div>
 
             <div className="mt-5 overflow-hidden rounded-lg border border-[#1A4D40] bg-[#0B2C24]">
-              <div className="relative aspect-[4/3] overflow-hidden bg-[linear-gradient(135deg,#041A15_0%,#0B2C24_48%,#10372D_100%)]">
-                <div className="absolute inset-0 grid place-items-center">
-                  <div className="relative h-24 w-24 overflow-hidden rounded-2xl bg-[#10372D] shadow-sm">
-                    <Image src="/icons/Logo.png" alt="FitNMove logo" fill sizes="96px" className="object-contain p-2" />
-                  </div>
-                </div>
+              <div className="relative aspect-[4/3] overflow-hidden bg-[#041A15]">
+                <video src="/images/introvid.mp4" autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover" aria-label="FitNMove introduction" />
                 <div className="absolute bottom-4 left-4 right-4 grid grid-cols-3 gap-2">
                   {["Train", "Move", "Compete"].map((item) => (
                     <span key={item} className="rounded-lg bg-[#041A15]/82 px-2 py-2 text-center text-xs font-black text-[#B8F34A] shadow-sm backdrop-blur">
@@ -121,6 +120,7 @@ function ProductStage() {
               ))}
             </div>
           </div>
+          </div>
         </div>
       </div>
     </div>
@@ -134,16 +134,12 @@ function Hero() {
       <div className="absolute inset-x-0 top-16 -z-10 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
 
       <div className="mx-auto grid max-w-[1120px] items-center gap-12 lg:grid-cols-[1fr_430px]">
-        <div className="landing-hero-copy max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#35D39A]/20 bg-[#0B2C24]/80 px-3 py-1.5 text-xs font-semibold text-[#B8F34A] shadow-sm backdrop-blur">
-            <Sparkles className="h-3.5 w-3.5" strokeWidth={1.8} />
-            Built for training days, movement streaks, and friendly competition
-          </div>
+        <div className="landing-hero-copy max-w-3xl px-2 sm:px-0">
           <h1 className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.05] text-foreground sm:text-5xl lg:text-6xl">
-            FitNMove turns effort into momentum.
+            DISCIPLINE BUILDS A <span className="text-[#8FF5C8]">BRIGHTER YOU.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-            Train with structure, move with purpose, and compete through points, ranks, and daily wins in one mobile-first fitness hub.
+            Train, track progress, and build better habits in one place.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -155,19 +151,20 @@ function Hero() {
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" strokeWidth={1.8} />
             </Link>
             <Link
-              href="/hub/food/scan-label"
+              href="#features"
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#1A4D40] bg-[#0B2C24]/85 px-5 text-sm font-semibold text-[#B8F34A] backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:bg-[#16453A]"
             >
               <Camera className="h-4 w-4" strokeWidth={1.8} />
-              Start training
+              Watch Preview
             </Link>
           </div>
 
-          <div className="mt-9 grid max-w-2xl gap-3 sm:grid-cols-3">
+          <div className="mt-9 grid max-w-2xl gap-3 sm:grid-cols-4">
             {[
-              [ShieldCheck, "Private by design"],
-              [Salad, "Nutrition-aware"],
-              [TimerReset, "Daily progress loops"],
+              [Dumbbell, "Track Workouts"],
+              [Trophy, "Compete with Others"],
+              [HeartPulse, "Build Better Habits"],
+              [TrendingUp, "See Real Progress"],
             ].map(([Icon, label]) => (
               <div key={label as string} className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#10372D] text-[#B8F34A] shadow-sm">
@@ -177,6 +174,7 @@ function Hero() {
               </div>
             ))}
           </div>
+          <p className="mt-6 text-xs font-semibold text-[#8FAAA0]">Join a growing community — 10K+ people already moving.</p>
         </div>
 
         <ProductStage />
@@ -208,6 +206,35 @@ function ActionGrid() {
             </Link>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function FeaturePresentation() {
+  const features = [
+    ["Workout library", "Follow guided movement clips, build a routine, and keep your next session ready.", "/images/Workoutintro.mp4"],
+    ["Muscle map", "See what you have trained and choose the next area to move with purpose.", "/images/Musclemapintro.mp4"],
+    ["Progress", "Watch your consistency grow with simple feedback that keeps momentum visible.", "/images/Progresspage.mp4"],
+    ["Calorie tracker", "Log meals quickly, understand your intake, and make better choices every day.", "/images/calorietracker.mp4"],
+    ["Leaderboard", "Turn consistency into friendly competition and celebrate every milestone.", "/images/leaderboardpagevid.mp4"],
+  ];
+  return (
+    <section id="features" className="px-4 py-16 sm:px-6 lg:py-24">
+      <div className="mx-auto max-w-[900px] space-y-16 lg:space-y-24">
+        <h2 className="text-center text-3xl font-semibold text-foreground sm:text-4xl">Features</h2>
+        {features.map(([title, description, src], index) => (
+          <article key={title} className={`grid items-center gap-8 md:grid-cols-2 md:gap-14 ${index % 2 ? "md:[&>*:first-child]:order-2" : ""}`}>
+            <div className="mx-auto w-full max-w-[270px] overflow-hidden rounded-[30px] border border-[#1A4D40] bg-[#041A15] p-2 shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
+              <div className="aspect-[9/16] overflow-hidden rounded-[23px] bg-[#0B2C24]"><video src={src} autoPlay muted loop playsInline preload="metadata" className="h-full w-full object-cover" /></div>
+            </div>
+            <div className={index % 2 ? "text-center md:text-right" : "text-center md:text-left"}>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">FitNMove</p>
+              <h2 className="mt-3 text-3xl font-semibold leading-tight text-foreground">{title}</h2>
+              <p className="mx-auto mt-4 max-w-sm text-sm leading-7 text-muted-foreground md:mx-0 md:inline-block">{description}</p>
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );
@@ -275,6 +302,34 @@ function TrustBand() {
   );
 }
 
+function WorkoutExplainer() {
+  const clips = [
+    ["Start a workout", "/Workout/workoutclips/Fullbody/jumpingjacks.mp4"],
+    ["Build your streak", "/Workout/workoutclips/Fullbody/burpees.mp4"],
+    ["Track your progress", "/Workout/workoutclips/Fullbody/highknees.mp4"],
+  ];
+  return (
+    <section className="px-4 py-16 sm:px-6 lg:py-20">
+      <div className="mx-auto max-w-[1120px]">
+        <p className="text-xs font-semibold uppercase text-primary">See it in action</p>
+        <h2 className="mt-3 max-w-xl text-3xl font-semibold leading-tight text-foreground sm:text-4xl">Train. Track. Repeat.</h2>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {clips.map(([title, src]) => (
+            <article key={title} className="overflow-hidden rounded-2xl border border-[#1A4D40] bg-[#0B2C24]">
+              <div className="relative aspect-[9/14] bg-[#10372D]">
+                <video src={src} autoPlay muted loop playsInline preload="metadata" className="h-full w-full object-cover opacity-90" />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#041A15] to-transparent p-4 pt-12">
+                  <h3 className="text-sm font-bold text-white">{title}</h3>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function LearnPreview({ posts }: { posts: BlogPost[] }) {
   return (
     <section className="px-4 py-16 sm:px-6 lg:py-20">
@@ -328,7 +383,7 @@ function LearnPreview({ posts }: { posts: BlogPost[] }) {
 
 function Footer() {
   return (
-    <footer className="px-4 pb-10 pt-8 sm:px-6">
+    <footer id="community" className="px-4 pb-10 pt-8 sm:px-6">
       <div className="mx-auto flex max-w-[1120px] flex-col justify-between gap-5 border-t border-border pt-7 sm:flex-row sm:items-center">
         <Link href="/" className="flex items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-primary">
@@ -341,9 +396,12 @@ function Footer() {
         </Link>
         <div className="flex flex-wrap gap-4 text-sm font-medium text-muted-foreground">
           <Link href="/hub">Hub</Link>
-          <Link href="/learn">Learn</Link>
           <Link href="/support">Support</Link>
           <Link href="/privacy">Privacy</Link>
+          <a href="https://www.instagram.com/fitnmove.np/" target="_blank" rel="noreferrer">Instagram</a>
+          <a href="https://www.facebook.com/fitnmove.np" target="_blank" rel="noreferrer">Facebook</a>
+          <a href="https://www.tiktok.com/@fitnmove.np" target="_blank" rel="noreferrer">TikTok</a>
+          <a href="https://www.youtube.com/@FitNMove_np" target="_blank" rel="noreferrer">YouTube</a>
         </div>
       </div>
       <div className="mx-auto mt-5 flex max-w-[1120px] flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
@@ -362,10 +420,9 @@ export function LandingContent({ posts }: { posts: BlogPost[] }) {
   return (
     <>
       <Hero />
-      <ActionGrid />
       <FlowSection />
+      <FeaturePresentation />
       <TrustBand />
-      <LearnPreview posts={posts} />
       <Footer />
     </>
   );

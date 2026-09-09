@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { HeartPulse, Sparkles } from "lucide-react";
 
 export function FloatingCoachButton() {
+  const pathname = usePathname();
+  if (pathname.startsWith("/admin")) return null;
+
   return (
     <Link
       href="/hub/chat"

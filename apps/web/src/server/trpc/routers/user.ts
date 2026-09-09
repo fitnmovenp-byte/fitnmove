@@ -156,6 +156,7 @@ export const userRouter = router({
         id: users.id,
         email: users.email,
         name: users.name,
+        image: users.image,
         isActive: users.isActive,
         isAdmin: users.isAdmin,
         plan: users.plan,

@@ -3,9 +3,10 @@ import { auth } from "@/server/auth";
 import { headers } from "next/headers";
 import { uploadFile } from "@/server/services/r2";
 import { randomUUID } from "crypto";
+import { createClient } from "@supabase/supabase-js";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_FOLDERS = ["documents", "progress-photos"];
+const ALLOWED_FOLDERS = ["documents", "progress-photos", "avatars"];
 const ALLOWED_TYPES = [
   "image/jpeg",
   "image/png",
@@ -47,7 +48,27 @@ export async function POST(request: NextRequest) {
   const key = `${folder}/${session.user.id}/${randomUUID()}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  const url = await uploadFile(key, buffer, file.type);
+  let url: string;
+  try {
+    if (process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_BUCKET_NAME && process.env.R2_PUBLIC_URL) {
+      url = await uploadFile(key, buffer, file.type);
+    } else {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!supabaseUrl || !serviceRoleKey) {
+        return NextResponse.json({ error: "File storage is not configured. Add R2 credentials or Supabase service-role credentials." }, { status: 503 });
+      }
+      const supabase = createClient(supabaseUrl, serviceRoleKey);
+      const storagePath = `${folder}/${session.user.id}/${randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(storagePath, buffer, { contentType: file.type, upsert: false });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from("avatars").getPublicUrl(storagePath);
+      url = data.publicUrl;
+    }
+  } catch (error) {
+    console.error("Upload failed", error);
+    return NextResponse.json({ error: "Upload failed. Check the configured storage bucket and credentials." }, { status: 502 });
+  }
 
   return NextResponse.json({
     url,

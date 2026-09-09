@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import {
   Activity,
   Camera,
@@ -1529,6 +1530,11 @@ export function WorkoutAnalyzerMode({
   const [activeTab, setActiveTab] = useState<AnalyzerTab>(experience ?? "quick");
   const [selectedPreset, setSelectedPreset] = useState<WorkoutPreset | null>(null);
   const [activePreset, setActivePreset] = useState<WorkoutPreset | null>(initialPreset ?? null);
+  const { data: managedPrograms } = trpc.workoutPrograms.listPublished.useQuery(undefined, {
+    enabled: experience === "programs",
+    retry: false,
+  });
+  const availablePrograms = (managedPrograms?.length ? managedPrograms : WORKOUT_PRESETS) as WorkoutPreset[];
   const [showSettings, setShowSettings] = useState(false);
   const [showExerciseMenu, setShowExerciseMenu] = useState(false);
   const [exerciseSearch, setExerciseSearch] = useState("");
@@ -1547,8 +1553,11 @@ export function WorkoutAnalyzerMode({
   const [lastSetSummary, setLastSetSummary] = useState<SetSummary | null>(null);
   const [timedRemaining, setTimedRemaining] = useState<number | null>(null);
   const [cameraFacingMode, setCameraFacingMode] = useState<"user" | "environment">("user");
+  const [workoutControlsWake, setWorkoutControlsWake] = useState(0);
+  const [workoutControlsVisible, setWorkoutControlsVisible] = useState(true);
   const shouldRestartCameraRef = useRef(false);
   const [taskCompleted, setTaskCompleted] = useState(false);
+  const [showWorkoutComplete, setShowWorkoutComplete] = useState(false);
   const [rewardPopup, setRewardPopup] = useState<RewardPopup | null>(null);
 
   const taskId = searchParams.get("taskId");
@@ -1561,6 +1570,12 @@ export function WorkoutAnalyzerMode({
   const requestedTarget = Number(searchParams.get("target"));
   const taskTarget = Number.isFinite(requestedTarget) && requestedTarget > 0 ? Math.round(requestedTarget) : null;
   const isTaskMode = Boolean(taskId && taskExercise && taskTarget);
+  useEffect(() => {
+    setWorkoutControlsVisible(true);
+    if (status !== "running" || trackingMode === "camera" || routinePhase === "summary") return;
+    const timer = window.setTimeout(() => setWorkoutControlsVisible(false), 2600);
+    return () => window.clearTimeout(timer);
+  }, [routinePhase, status, trackingMode, workoutControlsWake]);
   const completeTask = trpc.tasks.completeTask.useMutation({
     onSuccess: (data) => {
       toast.success(data.message);
@@ -1981,7 +1996,7 @@ export function WorkoutAnalyzerMode({
       setWorkoutFlowStep("activity");
       playSound("finish");
       speak(message);
-      router.push("/hub/workout");
+      setShowWorkoutComplete(true);
     },
     [playSound, router, speak]
   );
@@ -3209,8 +3224,13 @@ export function WorkoutAnalyzerMode({
       >
         <button type="button" onClick={() => setSelectedPreset(preset)} className="block w-full text-left">
           <div className="relative aspect-[16/10] overflow-hidden bg-[#071512]">
-            {coverClip ? (
-              <video src={coverClip} className="h-full w-full object-cover" muted loop playsInline autoPlay />
+            {preset.thumbnail ? (
+              <img src={preset.thumbnail} alt="" className="h-full w-full object-cover" />
+            ) : coverClip ? (
+              <>
+                <video src={coverClip} className="h-full w-full object-cover" muted loop playsInline autoPlay />
+                <span aria-hidden="true" className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/45 px-1.5 py-1 text-[9px] font-black uppercase tracking-[0.08em] text-white backdrop-blur-sm"><Image src="/icons/Logo.png" alt="" width={14} height={14} className="h-3.5 w-3.5 rounded-sm" />FitNMove</span>
+              </>
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-[#EAF8F4] text-[#15483F]">
                 <Dumbbell className="h-9 w-9" strokeWidth={2.2} />
@@ -3345,6 +3365,35 @@ export function WorkoutAnalyzerMode({
     program === "custom" && activeRoutineSteps.length > 0
       ? Math.min(100, ((routineStepIndex + (status === "running" ? routineProgress / 100 : 0)) / activeRoutineSteps.length) * 100)
       : routineProgress;
+  const downloadWorkoutSummary = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1350;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    const image = new window.Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      context.fillStyle = "rgba(4,26,21,.52)";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = "#ffffff";
+      context.font = "900 64px sans-serif";
+      context.fillText("WORKOUT COMPLETE", 64, 100);
+      context.fillStyle = "rgba(4,26,21,.84)";
+      context.roundRect(54, 780, 972, 420, 32);
+      context.fill();
+      context.strokeStyle = "rgba(32,199,164,.65)";
+      context.lineWidth = 3;
+      context.stroke();
+      context.fillStyle = "#ffffff";
+      context.font = "700 32px sans-serif";
+      const stats = [["TIME", `${Math.floor(sessionSeconds / 60)}m ${sessionSeconds % 60}s`], ["REPS", `${metrics.repCount}`], ["SETS", `${recentSets.length}`], ["EXERCISES", `${activeRoutineSteps.filter((step) => step.type === "work").length || 1}`]];
+      stats.forEach(([label, value], index) => { const x = 100 + (index % 2) * 480; const y = 880 + Math.floor(index / 2) * 150; context.fillStyle = "#9ff7cf"; context.font = "700 24px sans-serif"; context.fillText(label, x, y); context.fillStyle = "#ffffff"; context.font = "900 46px sans-serif"; context.fillText(value, x, y + 58); });
+      const link = document.createElement("a"); link.download = "fitnmove-workout-summary.png"; link.href = canvas.toDataURL("image/png"); link.click();
+    };
+    image.src = "/images/completebanner.png";
+  };
 
   return (
     <div className="space-y-5 bg-background pb-8">
@@ -3368,6 +3417,24 @@ export function WorkoutAnalyzerMode({
           </div>
           <div className="mt-4 h-3 overflow-hidden rounded-full bg-white">
             <div className="h-full rounded-full bg-[#20C7A4] transition-all duration-500" style={{ width: `${routineProgress}%` }} />
+          </div>
+        </div>
+      )}
+      {showWorkoutComplete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="relative aspect-[4/5] w-full max-w-lg overflow-hidden rounded-3xl bg-[#0B2C24] text-white shadow-2xl">
+            <Image src="/images/completebanner.png" alt="Workout completed" fill sizes="(max-width: 640px) 92vw, 512px" className="object-contain opacity-75" />
+          <div className="relative z-10 flex h-full flex-col justify-end p-4 sm:p-7">
+              <h2 className="mb-4 text-center text-2xl font-black drop-shadow-lg sm:text-3xl">Workout complete!</h2>
+              <div className="grid grid-cols-4 gap-0 rounded-2xl border border-[#20C7A4]/60 bg-[#041A15]/85 p-2 shadow-2xl backdrop-blur-xl sm:p-4">
+                <div className="border-white/15 px-1 text-center sm:border-r sm:px-2"><Clock className="mx-auto h-4 w-4 text-[#20C7A4] sm:h-5 sm:w-5" /><p className="mt-1 text-[8px] font-medium uppercase tracking-[0.14em] text-[#9ff7cf] sm:text-[9px]">Time</p><p className="mt-1 text-sm font-medium tracking-wide text-white sm:text-xl">{Math.floor(sessionSeconds / 60)}m {sessionSeconds % 60}s</p></div>
+                <div className="border-white/15 px-1 text-center sm:border-r sm:px-2"><Activity className="mx-auto h-4 w-4 text-[#20C7A4] sm:h-5 sm:w-5" /><p className="mt-1 text-[8px] font-medium uppercase tracking-[0.14em] text-[#9ff7cf] sm:text-[9px]">Reps</p><p className="mt-1 text-sm font-medium tracking-wide text-white sm:text-xl">{metrics.repCount}</p></div>
+                <div className="border-white/15 px-1 text-center sm:border-r sm:px-2"><ListChecks className="mx-auto h-4 w-4 text-[#20C7A4] sm:h-5 sm:w-5" /><p className="mt-1 text-[8px] font-medium uppercase tracking-[0.14em] text-[#9ff7cf] sm:text-[9px]">Sets</p><p className="mt-1 text-sm font-medium tracking-wide text-white sm:text-xl">{recentSets.length}</p></div>
+                <div className="px-1 text-center sm:px-2"><Dumbbell className="mx-auto h-4 w-4 text-[#20C7A4] sm:h-5 sm:w-5" /><p className="mt-1 text-[8px] font-medium uppercase tracking-[0.14em] text-[#9ff7cf] sm:text-[9px]">Exercises</p><p className="mt-1 text-sm font-medium tracking-wide text-white sm:text-xl">{activeRoutineSteps.filter((step) => step.type === "work").length || 1}</p></div>
+              </div>
+              <button type="button" onClick={() => setShowWorkoutComplete(false)} className="mt-5 min-h-11 w-full rounded-xl bg-[#B8F34A] font-black text-[#041A15]">Continue</button>
+              <button type="button" onClick={downloadWorkoutSummary} className="mt-2 min-h-10 w-full rounded-xl border border-white/25 bg-white/10 text-sm font-bold">Download PNG summary</button>
+            </div>
           </div>
         </div>
       )}
@@ -3447,11 +3514,11 @@ export function WorkoutAnalyzerMode({
               <h2 className="text-xl font-black text-[#17201E]">Programs</h2>
               <p className="mt-1 text-sm leading-5 text-[#6B7773]">Clip-guided routines by body area.</p>
             </div>
-            <span className="shrink-0 text-xs font-bold text-[#6B7773]">{WORKOUT_PRESETS.length} ready</span>
+            <span className="shrink-0 text-xs font-bold text-[#6B7773]">{availablePrograms.length} ready</span>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:gap-7">
-            {WORKOUT_PRESETS.map((preset) => programCard(preset))}
+            {availablePrograms.map((preset) => programCard(preset))}
           </div>
 
           <button
@@ -3656,7 +3723,10 @@ export function WorkoutAnalyzerMode({
               )}
 
               {trackingMode !== "camera" && isWorkoutSurfaceActive && (
-                <div className="absolute inset-0 overflow-hidden bg-[#071512] text-white">
+                <div
+                  className="absolute inset-0 overflow-hidden bg-[#071512] text-white"
+                  onClick={() => setWorkoutControlsWake((value) => value + 1)}
+                >
                   {activeDemoClip ? (
                     <>
                       <video
@@ -3668,7 +3738,8 @@ export function WorkoutAnalyzerMode({
                         playsInline
                         autoPlay
                       />
-                      <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-[#071512]/55 to-[#071512]/92" />
+                      <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-transparent to-[#071512]/85" />
+                      <span aria-hidden="true" className="absolute bottom-24 right-4 inline-flex items-center gap-1 rounded-full bg-black/45 px-2 py-1.5 text-[10px] font-black uppercase tracking-[0.08em] text-white backdrop-blur-sm sm:bottom-28 sm:right-6"><Image src="/icons/Logo.png" alt="" width={16} height={16} className="h-4 w-4 rounded-sm" />FitNMove</span>
                     </>
                   ) : (
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,#0B211D_0%,#06110F_58%,#030806_100%)]" />
@@ -3679,7 +3750,9 @@ export function WorkoutAnalyzerMode({
                       <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-200/80">
                         {activeStep?.type === "timed" ? activeStep.label : selectedExercise.label}
                       </p>
-                      <p className="mt-2 text-xl font-black tracking-normal text-white sm:mt-3 sm:text-2xl">{stageStatus}</p>
+                      <p className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/70">
+                        {status === "running" ? "Trust you — just train" : stageStatus}
+                      </p>
                     </div>
 
                     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 py-3 sm:gap-6 sm:py-5">
@@ -3752,27 +3825,6 @@ export function WorkoutAnalyzerMode({
                             </div>
                           )}
 
-                          {trackingMode === "trust" && (
-                            <div className="rounded-[22px] border border-emerald-100/20 bg-white/10 px-5 py-4 text-center shadow-[0_0_60px_rgba(32,199,164,0.18)] sm:rounded-[28px] sm:px-8 sm:py-6">
-                              <p className="text-2xl font-black sm:text-3xl">{selectedExercise.label}</p>
-                              <p className="mt-2 text-base font-semibold text-emerald-100 sm:text-lg">
-                                {targetSeconds ? `${targetSeconds} sec` : displayTargetReps ? `${displayTargetReps} reps` : formatSessionTime(sessionSeconds)}
-                              </p>
-                            </div>
-                          )}
-
-                          <div
-                            className="relative flex h-40 w-40 items-center justify-center rounded-full sm:h-56 sm:w-56"
-                            style={{
-                              background: `conic-gradient(#6EE7B7 ${routineProgress}%, rgba(255,255,255,0.16) ${routineProgress}% 100%)`,
-                            }}
-                          >
-                            <div className="flex h-[9.25rem] w-[9.25rem] flex-col items-center justify-center rounded-full bg-[#071512] shadow-inner sm:h-[13rem] sm:w-[13rem]">
-                              <p className="text-4xl font-black leading-none tabular-nums sm:text-6xl">{stageRepLabel}</p>
-                              <p className="mt-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-100/80">{stageUnitLabel}</p>
-                            </div>
-                          </div>
-
                           {trackingMode === "interactive" && interactiveMode === "tap" && (
                             <button
                               type="button"
@@ -3786,16 +3838,6 @@ export function WorkoutAnalyzerMode({
                             </button>
                           )}
 
-                          {trackingMode === "trust" && status === "running" && (
-                            <div className="grid w-full max-w-md grid-cols-2 gap-2">
-                              <button type="button" onClick={confirmTrustSet} className="min-h-14 rounded-full bg-emerald-200 px-5 text-sm font-black text-[#071512]">
-                                Completed
-                              </button>
-                              <button type="button" onClick={endCurrentSet} className="min-h-14 rounded-full border border-white/20 bg-white/10 px-5 text-sm font-black text-white">
-                                Did fewer
-                              </button>
-                            </div>
-                          )}
                         </>
                       )}
 
@@ -3810,12 +3852,32 @@ export function WorkoutAnalyzerMode({
 
                     </div>
 
-                    <div className="relative z-10 rounded-[24px] border border-white/10 bg-white/10 p-3 backdrop-blur">
-                      <div className="grid grid-cols-3 gap-2 text-center text-xs font-semibold text-emerald-50/80">
-                        <span>{activeSetLabel} of {setTotal}</span>
-                        <span>{targetSeconds ? `${targetSeconds}s` : `Target ${displayTargetReps ?? "--"}`}</span>
-                        <span>{status === "rest" ? `Rest ${formatSessionTime(routineRemaining ?? 0)}` : formatSessionTime(sessionSeconds)}</span>
+                    <div
+                      className={cn(
+                        "relative z-10 rounded-[20px] border border-white/15 bg-[#071512]/72 p-3 shadow-lg backdrop-blur-md transition-opacity duration-300",
+                        status === "running" && !workoutControlsVisible ? "opacity-60" : "opacity-100"
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-3 text-white">
+                        <div>
+                          <p className="text-lg font-black tabular-nums sm:text-xl">{stageRepLabel} <span className="text-xs tracking-[0.16em] text-emerald-100/80">{stageUnitLabel.toUpperCase()}</span></p>
+                          <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white/60">{activeSetLabel}</p>
+                        </div>
+                        <p className="text-sm font-black tabular-nums text-emerald-100">{status === "rest" ? `Rest ${formatSessionTime(routineRemaining ?? 0)}` : formatSessionTime(sessionSeconds)}</p>
                       </div>
+                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/20">
+                        <div className="h-full rounded-full bg-emerald-300 transition-all duration-200" style={{ width: `${Math.max(4, routineProgress)}%` }} />
+                      </div>
+                      {trackingMode === "trust" && status === "running" && (
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                          <button type="button" onClick={endCurrentSet} className="min-h-11 rounded-full border border-white/20 bg-white/10 px-4 text-sm font-black text-white">
+                            Did fewer
+                          </button>
+                          <button type="button" onClick={confirmTrustSet} className="min-h-11 rounded-full bg-emerald-200 px-4 text-sm font-black text-[#071512]">
+                            Completed
+                          </button>
+                        </div>
+                      )}
                       {routinePhase !== "summary" && (
                         <div className="mt-3 grid grid-cols-[auto_1fr_auto] gap-2">
                           <button type="button" onClick={() => nudgeRepCount(-1, activeProofSource)} className="min-h-11 rounded-full border border-white/15 bg-white/10 px-5 text-lg font-black text-white">
@@ -3840,8 +3902,9 @@ export function WorkoutAnalyzerMode({
               )}
 
               <div className="absolute left-4 right-4 top-4 z-10 flex items-center justify-between gap-3">
-                <div className="min-w-0 rounded-full bg-white/92 px-4 py-2 text-sm font-semibold text-foreground shadow-sm backdrop-blur">
-                  <span className="block max-w-[180px] truncate">{activeStep?.type === "timed" ? activeStep.label : selectedExercise.label}</span>
+                <div className="min-w-0 rounded-2xl bg-white/92 px-3 py-2 text-foreground shadow-sm backdrop-blur">
+                  <span className="block max-w-[180px] truncate text-sm font-black">{activeStep?.type === "timed" ? activeStep.label : selectedExercise.label}</span>
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{trackingMode === "trust" ? "Manual mode" : activeTrackingLabel}</span>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   {trackingMode === "camera" && (

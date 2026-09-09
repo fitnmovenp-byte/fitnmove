@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, useTransition, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Activity, ArrowLeft, Camera, Dumbbell, Leaf, RotateCcw, Loader2, ImageIcon, Route, Target } from "lucide-react";
+import { Activity, ArrowLeft, Camera, Dumbbell, Leaf, RotateCcw, Loader2, ImageIcon, Route } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,20 +88,7 @@ function ScanLabelContent() {
         ? "track"
       : requestedMode === "meditation"
         ? "meditation"
-        : requestedMode === "stretch" || requestedMode === "stretching"
-          ? "stretch"
-          : requestedMode === "games" ||
-              requestedMode === "batting" ||
-              requestedMode === "fielding" ||
-              requestedMode === "bowling" ||
-              requestedMode === "football" ||
-              requestedMode === "running" ||
-              requestedMode === "escape" ||
-              requestedMode === "hero" ||
-              requestedMode === "boxing" ||
-              requestedMode === "shadow-boxing"
-            ? "games"
-            : "food";
+        : "food";
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -893,8 +880,6 @@ const exploreActivities: Array<{
   { mode: "workout", title: "Workout", description: "Train with your coach", icon: Dumbbell },
   { mode: "meditation", title: "Meditation", description: "Relax & reset", icon: Leaf },
   { mode: "track", title: "Run / Walk", description: "Track distance & pace", icon: Route },
-  { mode: "games", title: "Games", description: "Move, play & compete", icon: Target },
-  { mode: "stretch", title: "Stretch", description: "Mobility & recovery", icon: Activity },
 ];
 
 const stretchRoutines = [

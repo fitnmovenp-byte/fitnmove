@@ -31,9 +31,11 @@ export const PRO_PLANS = [
 ] as const;
 
 export const PRO_FEATURES = [
-  "Full FitNMove hub access after admin activation",
-  "Food tools, calorie guidance, and progress tracking",
-  "Workout analyzer, tasks, missions, medals, and leaderboard",
-  "AI coach and health guidance features",
-  "Manual eSewa activation support within around 24 hours",
+  "Unlimited food label scans and calorie estimates",
+  "100 AI coach chats per day",
+  "Micronutrient tracking and saved meals",
+  "Exercise hub and workout analysis",
+  "Fasting protocols and tracking",
+  "Progress photos and data export",
+  "Tasks, missions, medals, and leaderboard access",
 ] as const;

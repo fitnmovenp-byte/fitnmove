@@ -24,3 +24,4 @@ export * from "./activity";
 export * from "./reminders";
 export * from "./health-documents";
 export * from "./tasks";
+export * from "./workout-programs";

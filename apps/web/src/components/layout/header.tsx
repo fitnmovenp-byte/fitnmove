@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "@/lib/auth-client";
-import { Bell, Camera, Crown, LineChart, ListChecks, Route, Search, Trophy, User, Utensils, X } from "lucide-react";
+import { Bell, Crown, LineChart, ListChecks, Route, Search, Trophy, User, Utensils, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -83,7 +83,7 @@ export function Header() {
             ))}
           </nav>
 
-          <nav className="hidden items-center gap-1 lg:flex">
+          <nav className="hidden items-center gap-1 rounded-2xl border border-[#1A4D40] bg-[#0B2C24]/70 p-1 lg:flex">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -125,8 +125,8 @@ export function Header() {
                 href="/hub/food/scan-label"
                 className="hidden min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-[#C8FA69] active:bg-[#9ED52E] md:inline-flex"
               >
-                <Camera className="h-4 w-4" strokeWidth={2} />
-                Snap meal
+                <Search className="h-4 w-4" strokeWidth={2} />
+                Explore
               </Link>
               <Link
                 href="/hub/food/search"

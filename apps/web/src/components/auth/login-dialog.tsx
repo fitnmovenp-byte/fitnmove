@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Activity,
   CalendarDays,
@@ -166,6 +167,7 @@ export function LoginDialog({ open, onOpenChange, onSuccess }: LoginDialogProps)
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [referralCode, setReferralCode] = useState("");
@@ -292,7 +294,7 @@ export function LoginDialog({ open, onOpenChange, onSuccess }: LoginDialogProps)
     try {
       if (mode === "login") {
         setLoading(true);
-        const result = await signIn.email({ email, password });
+        const result = await signIn.email({ email, password, remember: rememberMe });
         if (result.error) {
           setError(result.error.message || "Sign in failed. Check your email and password.");
           setLoading(false);
@@ -403,9 +405,13 @@ export function LoginDialog({ open, onOpenChange, onSuccess }: LoginDialogProps)
         }
       }
 
+      const completedRegistration = mode === "register";
       resetForm();
       onOpenChange(false);
-      if (onSuccess) onSuccess();
+      if (completedRegistration) {
+        router.push("/pending-activation");
+        router.refresh();
+      } else if (onSuccess) onSuccess();
       else router.refresh();
     } catch {
       setError(mode === "login" ? t("auth.loginFailedRetry") : t("auth.registerFailedRetry"));
@@ -425,9 +431,9 @@ export function LoginDialog({ open, onOpenChange, onSuccess }: LoginDialogProps)
     const totalSteps = registrationSteps.length;
 
     return (
-      <div className="rounded-[22px] border border-[#35D39A]/20 bg-[#0B2C24] p-4 sm:p-5">
-        <div className="mb-5 space-y-2">
-          <div className="flex items-center justify-between gap-3 text-xs font-bold uppercase text-[#6B7773]">
+      <div key={step} className="animate-modal-in rounded-[22px] border border-[#35D39A]/20 bg-[#0B2C24] p-4 sm:p-5">
+          <div className="mb-5 space-y-2">
+          <div className="flex items-center justify-between gap-3 text-xs font-bold uppercase text-[#B8CBC3]">
             <span>Step {stepNumber} of {totalSteps}</span>
             <span>{Math.round((stepNumber / totalSteps) * 100)}%</span>
           </div>
@@ -458,10 +464,17 @@ export function LoginDialog({ open, onOpenChange, onSuccess }: LoginDialogProps)
                     key={team}
                     type="button"
                     onClick={() => setTeamColor(team)}
-                    className={`relative overflow-hidden rounded-[18px] border p-4 text-left transition-all ${
+                    className={`group relative overflow-hidden rounded-[18px] border p-4 text-left transition-all ${
                       selected ? option.selectedClass : "border-[#E3EAE7] bg-white hover:border-[#20C7A4]"
                     }`}
                   >
+                    <Image
+                      src={team === "blue" ? "/images/teambluebanner.png" : "/images/teamredbanner.png"}
+                      alt={`Team ${option.name}`}
+                      width={1600}
+                      height={900}
+                      className="mb-4 h-28 w-full rounded-[14px] object-cover object-center transition-transform duration-500 group-hover:scale-[1.03] sm:h-36 lg:h-44"
+                    />
                     {isLeader && (
                       <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-700">
                         <Crown className="h-4 w-4 fill-amber-400" />
@@ -666,8 +679,14 @@ export function LoginDialog({ open, onOpenChange, onSuccess }: LoginDialogProps)
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetForm(); }}>
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetForm(); }} className={mode === "register" ? "!max-w-4xl sm:p-7" : "max-w-md"}>
       <DialogHeader>
+        {mode === "login" && (
+          <div className="relative mb-3 overflow-hidden rounded-2xl border border-[#35D39A]/20 bg-[#0B2C24] shadow-lg">
+            <Image src="/images/loginpagebanner.png" alt="FitNMove — a stronger you starts here" width={1770} height={887} className="h-28 w-full object-cover sm:h-36" priority />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#041A15]/65 via-transparent to-transparent" />
+          </div>
+        )}
         <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-[16px] bg-[#B8F34A] text-[#041A15]">
           <HeartPulse className="h-6 w-6" />
         </div>
@@ -682,7 +701,7 @@ export function LoginDialog({ open, onOpenChange, onSuccess }: LoginDialogProps)
       <div className="mt-4 space-y-3">
         {error && <div className="rounded-xl bg-destructive/10 p-3 text-sm font-medium text-destructive">{error}</div>}
 
-        {mode === "login" && (
+        {false && mode === "login" && (
           <>
             <Button
               type="button"
@@ -761,7 +780,8 @@ export function LoginDialog({ open, onOpenChange, onSuccess }: LoginDialogProps)
         ) : (
           <>
             <Input type="email" placeholder={t("auth.emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
-            <Input type="password" placeholder={t("auth.passwordPlaceholder")} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
+              <Input type="password" placeholder={t("auth.passwordPlaceholder")} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
+              <label className="mt-3 flex items-center gap-2 text-sm text-[#C0D1CA]"><input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="h-4 w-4 accent-[#B8F34A]" /> Remember me</label>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? t("auth.loggingIn") : t("auth.login")}
             </Button>
@@ -794,8 +814,8 @@ function StepIntro({
         <Icon className="h-5 w-5" />
       </span>
       <div>
-        <h3 className="text-lg font-bold leading-6 text-[#17201E]">{title}</h3>
-        <p className="mt-1 text-sm leading-6 text-[#6B7773]">{description}</p>
+        <h3 className="text-lg font-bold leading-6 text-[#F4F8F5]">{title}</h3>
+        <p className="mt-1 text-sm leading-6 text-[#B8CBC3]">{description}</p>
       </div>
     </div>
   );
@@ -804,7 +824,7 @@ function StepIntro({
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block space-y-2">
-      <span className="text-xs font-bold uppercase text-[#6B7773]">{label}</span>
+      <span className="text-xs font-bold uppercase text-[#B8CBC3]">{label}</span>
       {children}
     </label>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, BrainCircuit, Dumbbell, Plus, Search, Sparkles, X } from "lucide-react";
@@ -8,6 +9,7 @@ import { WORKOUT_CLIPS, type WorkoutClip } from "@/lib/workout-clips";
 import type { PresetExercise, WorkoutPreset } from "../../food/scan-label/workout-analyzer-mode";
 
 type RoutineItem = { id: string; clip: WorkoutClip; reps: number; restSeconds: number };
+type EquipmentFilter = "All" | "Bodyweight" | "Dumbbell";
 const ROUTINE_STORAGE_KEY = "fitnmove-custom-workout";
 const MUSCLE_FILTERS = ["All", ...Array.from(new Set(WORKOUT_CLIPS.map((clip) => clip.muscle))).sort()];
 const TIMED_EXERCISE_KEYS = new Set(["plank", "wallSit", "sidePlank"]);
@@ -28,7 +30,7 @@ const MUSCLE_FILTER_ALIASES: Record<string, string> = {
   "upper-trapezius": "Upper back",
   "lower-trapezius": "Upper back",
   rhomboids: "Upper back",
-  biceps: "Forearms",
+  biceps: "Biceps",
 };
 
 function isTimedClip(clip: WorkoutClip) {
@@ -80,13 +82,15 @@ export default function QuickWorkoutPage() {
     return filter && MUSCLE_FILTERS.includes(filter) ? filter : "All";
   });
   const [routine, setRoutine] = useState<RoutineItem[]>([]);
+  const [equipment, setEquipment] = useState<EquipmentFilter>("All");
   const clips = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return WORKOUT_CLIPS.filter((clip) =>
       (muscle === "All" || clip.muscle === muscle) &&
+      (equipment === "All" || (clip.equipment ?? "bodyweight") === equipment.toLowerCase()) &&
       (!normalizedQuery || clip.name.toLowerCase().includes(normalizedQuery) || clip.muscle.toLowerCase().includes(normalizedQuery))
     );
-  }, [muscle, query]);
+  }, [equipment, muscle, query]);
 
   const addClip = (clip: WorkoutClip) => {
     setRoutine((current) => [...current, { id: `${clip.id}-${Date.now()}`, clip, reps: defaultTarget(clip), restSeconds: 20 }]);
@@ -95,7 +99,10 @@ export default function QuickWorkoutPage() {
     setRoutine((current) => current.map((item) => item.id === id ? { ...item, ...change } : item));
   };
   const createAiPlan = () => {
-    const eligible = WORKOUT_CLIPS.filter((clip) => muscle === "All" || clip.muscle === muscle);
+    const eligible = WORKOUT_CLIPS.filter((clip) =>
+      (muscle === "All" || clip.muscle === muscle) &&
+      (equipment === "All" || (clip.equipment ?? "bodyweight") === equipment.toLowerCase())
+    );
     setRoutine(eligible.slice(0, 4).map((clip, index) => ({
       id: `plan-${clip.id}-${Date.now()}-${index}`,
       clip,
@@ -140,7 +147,8 @@ export default function QuickWorkoutPage() {
         <h2 className="font-black text-[#17201E]">Workout clip library</h2>
         <div className="mt-3 flex h-11 items-center gap-2 rounded-xl border border-[#DDE8E4] px-3"><Search className="h-4 w-4 text-[#6B7773]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search exercises" className="min-w-0 flex-1 bg-transparent text-sm outline-none" /></div>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">{MUSCLE_FILTERS.map((filter) => <button key={filter} type="button" onClick={() => setMuscle(filter)} className={`shrink-0 rounded-full px-3 py-2 text-xs font-black ${muscle === filter ? "bg-[#15483F] text-white" : "bg-[#F1F6F4] text-[#45615A]"}`}>{filter}</button>)}</div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{clips.map((clip) => <article key={clip.id} className="overflow-hidden rounded-2xl border border-[#DDE8E4]"><video src={clip.src} muted playsInline preload="metadata" className="h-28 w-full bg-[#0C2821] object-cover" /><div className="p-3"><p className="font-black text-[#17201E]">{clip.name}</p><p className="mt-0.5 text-xs font-semibold text-[#6B7773]">{clip.muscle}</p><button type="button" onClick={() => addClip(clip)} className="mt-3 inline-flex min-h-9 items-center gap-1 rounded-full bg-[#EAF8F4] px-3 text-xs font-black text-[#15483F]"><Plus className="h-3.5 w-3.5" />Add to routine</button></div></article>)}</div>
+        <div className="mt-3 flex gap-2">{(["All", "Bodyweight", "Dumbbell"] as EquipmentFilter[]).map((filter) => <button key={filter} type="button" onClick={() => setEquipment(filter)} className={`rounded-full px-3 py-2 text-xs font-black ${equipment === filter ? "bg-[#15483F] text-white" : "bg-[#F1F6F4] text-[#45615A]"}`}>{filter}</button>)}</div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{clips.map((clip) => <article key={clip.id} className="overflow-hidden rounded-2xl border border-[#DDE8E4]"><div className="relative"><video src={clip.src} muted playsInline preload="metadata" className="h-28 w-full bg-[#0C2821] object-cover" /><span aria-hidden="true" className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/45 px-1.5 py-1 text-[9px] font-black uppercase tracking-[0.08em] text-white backdrop-blur-sm"><Image src="/icons/Logo.png" alt="" width={14} height={14} className="h-3.5 w-3.5 rounded-sm" />FitNMove</span></div><div className="p-3"><p className="font-black text-[#17201E]">{clip.name}</p><p className="mt-0.5 text-xs font-semibold text-[#6B7773]">{clip.muscle} · {clip.equipment === "dumbbell" ? "Dumbbell" : "Bodyweight"}</p><button type="button" onClick={() => addClip(clip)} className="mt-3 inline-flex min-h-9 items-center gap-1 rounded-full bg-[#EAF8F4] px-3 text-xs font-black text-[#15483F]"><Plus className="h-3.5 w-3.5" />Add to routine</button></div></article>)}</div>
       </section>
     </div>
   );

@@ -4,17 +4,18 @@ export type WorkoutClip = {
   muscle: string;
   exerciseKey?: string;
   src: string;
+  equipment?: "bodyweight" | "dumbbell";
 };
 
 const CLIP_BASE = "/Workout/workoutclips";
 
-export const WORKOUT_CLIPS: WorkoutClip[] = [
+const BODYWEIGHT_WORKOUT_CLIPS: WorkoutClip[] = [
   { id: "crunch", name: "Crunch", muscle: "Abs", exerciseKey: "crunch", src: `${CLIP_BASE}/Abs/Crunch.mp4` },
-  { id: "hollow-hold", name: "Hollow hold", muscle: "Abs", src: `${CLIP_BASE}/Abs/hollowhold.mp4` },
+  { id: "hollow-hold", name: "Hollow hold", muscle: "Abs", exerciseKey: "plank", src: `${CLIP_BASE}/Abs/hollowhold.mp4` },
   { id: "leg-raises", name: "Leg raises", muscle: "Abs", exerciseKey: "legRaise", src: `${CLIP_BASE}/Abs/Legraises.mp4` },
   { id: "plank", name: "Plank", muscle: "Abs", exerciseKey: "plank", src: `${CLIP_BASE}/Abs/plank.mp4` },
   { id: "situps", name: "Sit-ups", muscle: "Abs", exerciseKey: "situp", src: `${CLIP_BASE}/Abs/Situps.mp4` },
-  { id: "toe-touch", name: "Toe touch", muscle: "Abs", src: `${CLIP_BASE}/Abs/Toetouch.mp4` },
+  { id: "toe-touch", name: "Toe touch", muscle: "Abs", exerciseKey: "crunch", src: `${CLIP_BASE}/Abs/Toetouch.mp4` },
   { id: "lateral-lunge", name: "Lateral lunge", muscle: "Adductors", exerciseKey: "forwardLunge", src: `${CLIP_BASE}/Adductors/laterallunge.mp4` },
   { id: "side-lying-leg-raise", name: "Side lying leg raise", muscle: "Adductors", exerciseKey: "legRaise", src: `${CLIP_BASE}/Adductors/sidelyinglegraise.mp4` },
   { id: "calf-pulses", name: "Calf pulses", muscle: "Calves", exerciseKey: "calfRaise", src: `${CLIP_BASE}/Calves/calfpulses.mp4` },
@@ -39,7 +40,7 @@ export const WORKOUT_CLIPS: WorkoutClip[] = [
   { id: "superman-hold", name: "Superman hold", muscle: "Lower back", src: `${CLIP_BASE}/lowerback/supermanhold.mp4` },
   { id: "bicycle-crunch", name: "Bicycle crunch", muscle: "Obliques", exerciseKey: "crunch", src: `${CLIP_BASE}/Obliques/bicyclecrunch.mp4` },
   { id: "mountain-climber", name: "Mountain climber", muscle: "Obliques", exerciseKey: "mountainClimbers", src: `${CLIP_BASE}/Obliques/mountainclimber.mp4` },
-  { id: "russian-twist", name: "Russian twist", muscle: "Obliques", src: `${CLIP_BASE}/Obliques/russiantwist.mp4` },
+  { id: "russian-twist", name: "Russian twist", muscle: "Obliques", exerciseKey: "crunch", src: `${CLIP_BASE}/Obliques/russiantwist.mp4` },
   { id: "side-plank-hip-dip", name: "Side plank hip dip", muscle: "Obliques", exerciseKey: "sidePlank", src: `${CLIP_BASE}/Obliques/sideplanckhipdip.mp4` },
   { id: "bodyweight-squat", name: "Bodyweight squat", muscle: "Quadriceps", exerciseKey: "squat", src: `${CLIP_BASE}/Quadriceps/Bodyweightsquat.mp4` },
   { id: "jump-squats", name: "Jump squats", muscle: "Quadriceps", exerciseKey: "squatJump", src: `${CLIP_BASE}/Quadriceps/jumpsquats.mp4` },
@@ -58,6 +59,70 @@ export const WORKOUT_CLIPS: WorkoutClip[] = [
   { id: "superman", name: "Superman", muscle: "Upper back", src: `${CLIP_BASE}/upperback/superman.mp4` },
 ];
 
+const DUMBBELL_WORKOUT_CLIPS: WorkoutClip[] = [
+  { id: "dumbbell-crunch", name: "Dumbbell crunch", muscle: "Abs", exerciseKey: "crunch", equipment: "dumbbell", src: `${CLIP_BASE}/Abs/dumbell/dumbellcrunch.mp4` },
+  { id: "dumbbell-leg-raise-hold", name: "Dumbbell leg raise hold", muscle: "Abs", exerciseKey: "legRaise", equipment: "dumbbell", src: `${CLIP_BASE}/Abs/dumbell/dumbelllegraisehold.mp4` },
+  { id: "weighted-situps", name: "Weighted sit-ups", muscle: "Abs", exerciseKey: "situp", equipment: "dumbbell", src: `${CLIP_BASE}/Abs/dumbell/weightedsitups.mp4` },
+  { id: "concentration-curl", name: "Concentration curl", muscle: "Biceps", exerciseKey: "bicepCurl", equipment: "dumbbell", src: `${CLIP_BASE}/Biceps/dumbell/concentrationcurl.mp4` },
+  { id: "dumbbell-curls", name: "Dumbbell curls", muscle: "Biceps", exerciseKey: "bicepCurl", equipment: "dumbbell", src: `${CLIP_BASE}/Biceps/dumbell/dumbellcurls.mp4` },
+  { id: "incline-seated-curls", name: "Incline seated curls", muscle: "Biceps", exerciseKey: "bicepCurl", equipment: "dumbbell", src: `${CLIP_BASE}/Biceps/dumbell/inclinestyleseatedcurls.mp4` },
+  { id: "dumbbell-standing-calf-raise", name: "Dumbbell standing calf raise", muscle: "Calves", exerciseKey: "calfRaise", equipment: "dumbbell", src: `${CLIP_BASE}/Calves/dumbell/dumbellstandingcalfraise.mp4` },
+  { id: "dumbbell-seated-calf-raise", name: "Dumbbell seated calf raise", muscle: "Calves", exerciseKey: "calfRaise", equipment: "dumbbell", src: `${CLIP_BASE}/Calves/dumbell/seatedcalfraise.mp4` },
+  { id: "dumbbell-floor-raise", name: "Dumbbell floor raise", muscle: "Chest", exerciseKey: "pushup", equipment: "dumbbell", src: `${CLIP_BASE}/Chest/DumbellChest/dumbellfloorraise.mp4` },
+  { id: "dumbbell-pullover-chest", name: "Dumbbell pullover", muscle: "Chest", exerciseKey: "overheadPress", equipment: "dumbbell", src: `${CLIP_BASE}/Chest/DumbellChest/dumbellpullover.mp4` },
+  { id: "dumbbell-squeeze-press", name: "Dumbbell squeeze press", muscle: "Chest", exerciseKey: "pushup", equipment: "dumbbell", src: `${CLIP_BASE}/Chest/DumbellChest/dumbellsqueezepress.mp4` },
+  { id: "dumbbell-glute-bridge", name: "Dumbbell glute bridge", muscle: "Glutes", exerciseKey: "gluteBridge", equipment: "dumbbell", src: `${CLIP_BASE}/Glutes/dumbell/dumbellglutebridge.mp4` },
+  { id: "dumbbell-hip-thrust", name: "Dumbbell hip thrust", muscle: "Glutes", exerciseKey: "gluteBridge", equipment: "dumbbell", src: `${CLIP_BASE}/Glutes/dumbell/dumbellhipthrust.mp4` },
+  { id: "dumbbell-lunges", name: "Dumbbell lunges", muscle: "Glutes", exerciseKey: "forwardLunge", equipment: "dumbbell", src: `${CLIP_BASE}/Glutes/dumbell/dumbelllunges.mp4` },
+  { id: "goblet-squat-glutes", name: "Goblet squat", muscle: "Glutes", exerciseKey: "squat", equipment: "dumbbell", src: `${CLIP_BASE}/Glutes/dumbell/gobletsquat.mp4` },
+  { id: "romanian-deadlift-glutes", name: "Romanian deadlift", muscle: "Glutes", exerciseKey: "gluteBridge", equipment: "dumbbell", src: `${CLIP_BASE}/Glutes/dumbell/romaniandeadlift.mp4` },
+  { id: "dumbbell-good-morning", name: "Dumbbell good morning", muscle: "Hamstrings", exerciseKey: "gluteBridge", equipment: "dumbbell", src: `${CLIP_BASE}/Hamstrings/dumbell/dumbellgoodmorning.mp4` },
+  { id: "romanian-deadlift-hamstrings", name: "Romanian deadlift", muscle: "Hamstrings", exerciseKey: "gluteBridge", equipment: "dumbbell", src: `${CLIP_BASE}/Hamstrings/dumbell/romaniandeadlift.mp4` },
+  { id: "single-leg-romanian-deadlift-dumbbell", name: "Single leg Romanian deadlift", muscle: "Hamstrings", exerciseKey: "gluteBridge", equipment: "dumbbell", src: `${CLIP_BASE}/Hamstrings/dumbell/singlelegromaniandeadlift.mp4` },
+  { id: "dumbbell-bent-over-row-lower-back", name: "Dumbbell bent-over row", muscle: "Lower back", exerciseKey: "pullup", equipment: "dumbbell", src: `${CLIP_BASE}/lowerback/dumbell/bentoverdumbellrow.mp4` },
+  { id: "dumbbell-pullover-lower-back", name: "Dumbbell pullover", muscle: "Lower back", exerciseKey: "overheadPress", equipment: "dumbbell", src: `${CLIP_BASE}/lowerback/dumbell/dumbellpullover.mp4` },
+  { id: "renegade-rows-lower-back", name: "Renegade rows", muscle: "Lower back", exerciseKey: "shoulderTaps", equipment: "dumbbell", src: `${CLIP_BASE}/lowerback/dumbell/renegaderows.mp4` },
+  { id: "dumbbell-russian-twist", name: "Dumbbell Russian twist", muscle: "Obliques", exerciseKey: "crunch", equipment: "dumbbell", src: `${CLIP_BASE}/Obliques/dumbell/dumbellrussiantwist.mp4` },
+  { id: "dumbbell-side-bend", name: "Dumbbell side bend", muscle: "Obliques", exerciseKey: "crunch", equipment: "dumbbell", src: `${CLIP_BASE}/Obliques/dumbell/dumbellsidebend.mp4` },
+  { id: "renegade-rows-obliques", name: "Renegade rows", muscle: "Obliques", exerciseKey: "shoulderTaps", equipment: "dumbbell", src: `${CLIP_BASE}/Obliques/dumbell/renegaderows.mp4` },
+  { id: "suitcase-carry", name: "Suitcase carry", muscle: "Obliques", exerciseKey: "crunch", equipment: "dumbbell", src: `${CLIP_BASE}/Obliques/dumbell/suitcasecarry.mp4` },
+  { id: "dumbbell-bulgarian-split-squat", name: "Dumbbell Bulgarian split squat", muscle: "Quadriceps", exerciseKey: "squat", equipment: "dumbbell", src: `${CLIP_BASE}/Quadriceps/dumbell/dumbellbulgariansplitsquat.mp4` },
+  { id: "dumbbell-front-squat", name: "Dumbbell front squat", muscle: "Quadriceps", exerciseKey: "squat", equipment: "dumbbell", src: `${CLIP_BASE}/Quadriceps/dumbell/dumbellfrontsquat.mp4` },
+  { id: "goblet-squat-quadriceps", name: "Goblet squat", muscle: "Quadriceps", exerciseKey: "squat", equipment: "dumbbell", src: `${CLIP_BASE}/Quadriceps/dumbell/gobletsquat.mp4` },
+  { id: "dumbbell-split-squat", name: "Dumbbell split squat", muscle: "Quadriceps", exerciseKey: "squat", equipment: "dumbbell", src: `${CLIP_BASE}/Quadriceps/dumbell/splitsquat.mp4` },
+  { id: "arnold-press", name: "Arnold press", muscle: "Shoulder", exerciseKey: "overheadPress", equipment: "dumbbell", src: `${CLIP_BASE}/Shoulder/dumbell/arnoldpress.mp4` },
+  { id: "bent-over-reverse-fly", name: "Bent-over reverse fly", muscle: "Shoulder", exerciseKey: "overheadPress", equipment: "dumbbell", src: `${CLIP_BASE}/Shoulder/dumbell/bentoverreversefly.mp4` },
+  { id: "dumbbell-front-raise", name: "Dumbbell front raise", muscle: "Shoulder", exerciseKey: "overheadPress", equipment: "dumbbell", src: `${CLIP_BASE}/Shoulder/dumbell/dumbellfrontraise.mp4` },
+  { id: "dumbbell-lateral-raise", name: "Dumbbell lateral raise", muscle: "Shoulder", exerciseKey: "overheadPress", equipment: "dumbbell", src: `${CLIP_BASE}/Shoulder/dumbell/dumbelllateralraise.mp4` },
+  { id: "dumbbell-shoulder-press", name: "Dumbbell shoulder press", muscle: "Shoulder", exerciseKey: "overheadPress", equipment: "dumbbell", src: `${CLIP_BASE}/Shoulder/dumbell/dumbellshoulderpress.mp4` },
+  { id: "dumbbell-floor-press", name: "Dumbbell floor press", muscle: "Triceps", exerciseKey: "pushup", equipment: "dumbbell", src: `${CLIP_BASE}/Triceps/dumbell/dumbellfloorpress.mp4` },
+  { id: "dumbbell-skull-crusher", name: "Dumbbell skull crusher", muscle: "Triceps", exerciseKey: "overheadPress", equipment: "dumbbell", src: `${CLIP_BASE}/Triceps/dumbell/dumbellskullcrusheronfloor.mp4` },
+  { id: "hammer-curls", name: "Hammer curls", muscle: "Biceps", exerciseKey: "bicepCurl", equipment: "dumbbell", src: `${CLIP_BASE}/Triceps/dumbell/hammercurls.mp4` },
+  { id: "overhead-tricep-extension", name: "Overhead tricep extension", muscle: "Triceps", exerciseKey: "overheadPress", equipment: "dumbbell", src: `${CLIP_BASE}/Triceps/dumbell/overheadtricepextension.mp4` },
+  { id: "dumbbell-bent-over-row", name: "Dumbbell bent-over row", muscle: "Upper back", exerciseKey: "pullup", equipment: "dumbbell", src: `${CLIP_BASE}/upperback/dumbell/dumbellbentoverrow.mp4` },
+  { id: "dumbbell-high-pull", name: "Dumbbell high pull", muscle: "Upper back", exerciseKey: "pullup", equipment: "dumbbell", src: `${CLIP_BASE}/upperback/dumbell/dumbellhighpull.mp4` },
+  { id: "dumbbell-shrugs", name: "Dumbbell shrugs", muscle: "Upper back", exerciseKey: "pullup", equipment: "dumbbell", src: `${CLIP_BASE}/upperback/dumbell/dumbellshrugs.mp4` },
+  { id: "dumbbell-reverse-fly", name: "Dumbbell reverse fly", muscle: "Upper back", exerciseKey: "overheadPress", equipment: "dumbbell", src: `${CLIP_BASE}/upperback/dumbell/reversefly.mp4` },
+];
+
+const FULL_BODY_WORKOUT_CLIPS: WorkoutClip[] = [
+  { id: "full-body-burpees", name: "Burpees", muscle: "Full body", exerciseKey: "burpee", src: `${CLIP_BASE}/Fullbody/burpees.mp4` },
+  { id: "full-body-high-knees", name: "High knees", muscle: "Full body", exerciseKey: "highKnees", src: `${CLIP_BASE}/Fullbody/highknees.mp4` },
+  { id: "full-body-jumping-jacks", name: "Jumping jacks", muscle: "Full body", exerciseKey: "jumpingJacks", src: `${CLIP_BASE}/Fullbody/jumpingjacks.mp4` },
+  { id: "full-body-mountain-climber", name: "Mountain climber", muscle: "Full body", exerciseKey: "mountainClimbers", src: `${CLIP_BASE}/Fullbody/mountainclimber.mp4` },
+  { id: "squat-thrust", name: "Squat thrust", muscle: "Full body", exerciseKey: "burpee", src: `${CLIP_BASE}/Fullbody/squatthrust.mp4` },
+  { id: "dumbbell-burpees", name: "Dumbbell burpees", muscle: "Full body", exerciseKey: "burpee", equipment: "dumbbell", src: `${CLIP_BASE}/Fullbody/dumbell/dumbellburpees.mp4` },
+  { id: "dumbbell-clean-and-press", name: "Dumbbell clean and press", muscle: "Full body", exerciseKey: "overheadPress", equipment: "dumbbell", src: `${CLIP_BASE}/Fullbody/dumbell/dumbellcleanandpress.mp4` },
+  { id: "dumbbell-squat-to-press", name: "Dumbbell squat to press", muscle: "Full body", exerciseKey: "squat", equipment: "dumbbell", src: `${CLIP_BASE}/Fullbody/dumbell/dumbellsquattopress.mp4` },
+  { id: "dumbbell-thruster", name: "Dumbbell thruster", muscle: "Full body", exerciseKey: "squat", equipment: "dumbbell", src: `${CLIP_BASE}/Fullbody/dumbell/dumbellthruster.mp4` },
+];
+
+export const WORKOUT_CLIPS: WorkoutClip[] = [
+  ...BODYWEIGHT_WORKOUT_CLIPS,
+  ...DUMBBELL_WORKOUT_CLIPS,
+  ...FULL_BODY_WORKOUT_CLIPS,
+];
+
 const MUSCLE_ALIASES: Record<string, string[]> = {
   abs: ["abs", "rectus abdominis", "abdominals"],
   obliques: ["obliques", "external oblique", "internal oblique"],
@@ -65,6 +130,7 @@ const MUSCLE_ALIASES: Record<string, string[]> = {
   shoulder: ["shoulder", "shoulders", "deltoids", "front delts", "side delts", "rear delts"],
   triceps: ["triceps", "triceps brachii"],
   forearms: ["forearms", "forearm"],
+  biceps: ["biceps", "biceps brachii"],
   quadriceps: ["quadriceps", "quads", "thighs", "rectus femoris"],
   hamstrings: ["hamstrings", "biceps femoris"],
   glutes: ["glutes", "gluteus", "gluteus maximus"],
@@ -72,6 +138,7 @@ const MUSCLE_ALIASES: Record<string, string[]> = {
   adductors: ["adductors", "inner thigh"],
   "lower back": ["lower back", "erector spinae", "lumbar"],
   "upper back": ["upper back", "trapezius", "traps", "lats", "latissimus dorsi", "rhomboids"],
+  "full body": ["full body", "fullbody"],
 };
 
 function normalize(value: string) {

@@ -9,9 +9,10 @@ interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
+  className?: string;
 }
 
-export function Dialog({ open, onOpenChange, children }: DialogProps) {
+export function Dialog({ open, onOpenChange, children, className }: DialogProps) {
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -28,7 +29,7 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
       />
       <div className="fixed inset-0 flex min-h-dvh items-center justify-center overflow-y-auto px-4 py-6 sm:px-6">
         <div
-          className="animate-modal-in relative max-h-[calc(100dvh-3rem)] w-full max-w-sm overflow-y-auto rounded-3xl border bg-background p-5 shadow-[0_24px_80px_rgba(17,26,23,0.22)] sm:max-h-[calc(100dvh-4rem)] sm:p-6"
+          className={cn("animate-modal-in relative max-h-[calc(100dvh-3rem)] w-full max-w-sm overflow-y-auto rounded-3xl border bg-background p-5 shadow-[0_24px_80px_rgba(17,26,23,0.22)] sm:max-h-[calc(100dvh-4rem)] sm:p-6", className)}
           onClick={(e) => e.stopPropagation()}
         >
           <button

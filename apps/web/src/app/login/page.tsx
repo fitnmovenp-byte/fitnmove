@@ -1,22 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { LoginDialog } from "@/components/auth/login-dialog";
-import { useSession } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { data: session, isPending } = useSession();
   const [open, setOpen] = useState(true);
-
-  useEffect(() => {
-    if (!session?.user) return;
-    setOpen(false);
-    router.replace("/hub");
-  }, [router, session?.user]);
 
   const handleSuccess = () => {
     setOpen(false);
@@ -49,7 +41,7 @@ export default function LoginPage() {
       </section>
 
       <LoginDialog
-        open={open && !isPending && !session?.user}
+        open={open}
         onOpenChange={(nextOpen) => {
           setOpen(nextOpen);
         }}

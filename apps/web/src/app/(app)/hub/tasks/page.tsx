@@ -14,6 +14,7 @@ type Metric = "overall" | "pushup" | "pullup" | "squat" | "plank" | "runWalk";
 type LeaderboardEntry = {
   userId: string;
   name: string | null;
+  image: string | null;
   teamColor: string | null;
   points: number;
   score: number;
@@ -342,7 +343,7 @@ function PodiumSpot({ entry, scoreLabel }: { entry: LeaderboardEntry; scoreLabel
         <div className="h-7" />
       )}
       <div className="relative">
-        <Avatar name={entry.name} team={entry.teamColor} large={isChampion} />
+        <Avatar name={entry.name} image={entry.image} team={entry.teamColor} large={isChampion} />
         <span className={cn("absolute -right-2 -top-2 flex items-center justify-center rounded-full border border-white/70 bg-white shadow-[0_10px_24px_rgba(15,90,72,0.24)]", isChampion ? "h-9 w-9 text-amber-700" : "h-7 w-7 text-[#0F5A48]")}>
           <RankIcon rank={rank} className={isChampion ? "h-7 w-7" : "h-5 w-5"} />
         </span>
@@ -391,7 +392,7 @@ function RankRow({ entry, scoreLabel }: { entry: LeaderboardEntry; scoreLabel: s
         #{entry.rank}
       </div>
       <div className="relative">
-        <Avatar name={entry.name} team={entry.teamColor} />
+        <Avatar name={entry.name} image={entry.image} team={entry.teamColor} />
         <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-white text-[#0F5A48] shadow-sm">
           <RankIcon rank={rank} className="h-4 w-4" />
         </span>
@@ -411,11 +412,11 @@ function RankRow({ entry, scoreLabel }: { entry: LeaderboardEntry; scoreLabel: s
   );
 }
 
-function Avatar({ name, team, large = false }: { name?: string | null; team?: string | null; large?: boolean }) {
+function Avatar({ name, image, team, large = false }: { name?: string | null; image?: string | null; team?: string | null; large?: boolean }) {
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-full border-[3px] font-black shadow-[0_8px_18px_rgba(15,90,72,0.18)]",
+        "flex shrink-0 items-center justify-center overflow-hidden rounded-full border-[3px] font-black shadow-[0_8px_18px_rgba(15,90,72,0.18)]",
         large ? "h-[82px] w-[82px] text-2xl" : "h-11 w-11 text-sm",
         team === "red"
           ? "border-red-300 bg-red-600 text-white"
@@ -424,7 +425,7 @@ function Avatar({ name, team, large = false }: { name?: string | null; team?: st
             : "border-primary bg-[#123F37] text-white"
       )}
     >
-      {initials(name)}
+      {image ? <img src={image} alt="" className="h-full w-full rounded-full object-cover" /> : initials(name)}
     </div>
   );
 }

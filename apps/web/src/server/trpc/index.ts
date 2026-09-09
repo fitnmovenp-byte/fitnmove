@@ -22,6 +22,7 @@ import { hubRouter } from "./routers/hub";
 import { healthDocumentsRouter } from "./routers/health-documents";
 import { tasksRouter } from "./routers/tasks";
 import { adminRouter } from "./routers/admin";
+import { workoutProgramsRouter } from "./routers/workout-programs";
 
 export const appRouter = router({
   food: foodRouter,
@@ -47,6 +48,7 @@ export const appRouter = router({
   healthDocuments: healthDocumentsRouter,
   tasks: tasksRouter,
   admin: adminRouter,
+  workoutPrograms: workoutProgramsRouter,
 });
 
 export type AppRouter = typeof appRouter;

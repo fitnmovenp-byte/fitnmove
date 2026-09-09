@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   Bell,
   CheckCircle2,
   Crown,
+  Dumbbell,
   Loader2,
   Pencil,
   Search,
@@ -74,40 +76,38 @@ export function AdminDashboard() {
 
   const selectedUsers = useMemo(() => users.filter((user) => selectedIds.has(user.id)), [selectedIds, users]);
 
-  const invalidateAdmin = async () => {
-    await Promise.all([
-      utils.admin.getOverview.invalidate(),
-      utils.admin.listUsers.invalidate(),
-      utils.admin.getNotificationReadiness.invalidate(),
-    ]);
+  const invalidateAdmin = async (includeReadiness = false) => {
+    const requests = [utils.admin.getOverview.invalidate(), utils.admin.listUsers.invalidate()];
+    if (includeReadiness) requests.push(utils.admin.getNotificationReadiness.invalidate());
+    await Promise.all(requests);
   };
 
   const createUser = trpc.admin.createUser.useMutation({
-    onSuccess: async () => {
-      await invalidateAdmin();
+    onSuccess: () => {
+      void invalidateAdmin();
       setUserForm(null);
       toast.success("User created.");
     },
     onError: (error) => toast.error(error.message),
   });
   const updateUser = trpc.admin.updateUser.useMutation({
-    onSuccess: async () => {
-      await invalidateAdmin();
+    onSuccess: () => {
+      void invalidateAdmin();
       setUserForm(null);
       toast.success("User updated.");
     },
     onError: (error) => toast.error(error.message),
   });
   const setActive = trpc.admin.setActive.useMutation({
-    onSuccess: async () => {
-      await invalidateAdmin();
+    onSuccess: () => {
+      void invalidateAdmin();
       toast.success("Activation updated.");
     },
     onError: (error) => toast.error(error.message),
   });
   const deleteUser = trpc.admin.deleteUser.useMutation({
-    onSuccess: async () => {
-      await invalidateAdmin();
+    onSuccess: () => {
+      void invalidateAdmin();
       toast.success("User deleted.");
     },
     onError: (error) => toast.error(error.message),
@@ -159,10 +159,7 @@ export function AdminDashboard() {
               Manage users, activation, access, notifications, and system health from one place.
             </p>
           </div>
-          <Button onClick={() => setUserForm(emptyUserForm)} className="rounded-full bg-primary text-primary-foreground hover:bg-[#C8FA69]">
-            <UserPlus className="h-4 w-4" />
-            Add user
-          </Button>
+          <div className="flex flex-wrap gap-2"><Link href="/admin/workout-programs" className="inline-flex h-10 items-center gap-2 rounded-full border border-white/25 px-4 text-sm font-bold text-white"><Dumbbell className="h-4 w-4" /> Programs</Link><Button onClick={() => setUserForm(emptyUserForm)} className="rounded-full bg-primary text-primary-foreground hover:bg-[#C8FA69]"><UserPlus className="h-4 w-4" />Add user</Button></div>
         </div>
       </section>
 
