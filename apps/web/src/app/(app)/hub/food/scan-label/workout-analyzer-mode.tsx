@@ -789,6 +789,16 @@ function buildPresetSteps(preset: WorkoutPreset): RoutineStep[] {
   return steps;
 }
 
+function resolveProgramClip(exercise: PresetExercise | undefined) {
+  if (!exercise) return null;
+  const source = exercise.clipSrc?.trim().replace(/\\/g, "/");
+  if (source) {
+    if (/^https?:\/\//i.test(source) || source.startsWith("/")) return source;
+    return `/Workout/workoutclips/${source.replace(/^\/+/, "")}`;
+  }
+  return getWorkoutClipForExercise(exercise.exercise, exercise.label)?.src ?? null;
+}
+
 function formatPresetLine(exercise: PresetExercise) {
   if (exercise.reps) return `${exercise.sets} x ${exercise.reps}`;
   return `${exercise.sets} x ${exercise.seconds ?? 30} sec`;
@@ -2790,7 +2800,7 @@ export function WorkoutAnalyzerMode({
         (visibleRoutineStep.exercise && item.exercise === visibleRoutineStep.exercise)
     );
     return (
-      presetExercise?.clipSrc ??
+      resolveProgramClip(presetExercise) ??
       getWorkoutClipForExercise(visibleRoutineStep.exercise, visibleRoutineStep.label)?.src ??
       null
     );
@@ -3213,7 +3223,7 @@ export function WorkoutAnalyzerMode({
 
   const programCard = (preset: WorkoutPreset) => {
     const preview = preset.exercises.slice(0, 3).map(formatPresetPreview);
-    const coverClip = preset.exercises[0]?.clipSrc ?? getWorkoutClipForExercise(preset.exercises[0]?.exercise, preset.exercises[0]?.label)?.src;
+    const coverClip = resolveProgramClip(preset.exercises[0]);
     return (
       <MotionCard
         key={preset.id}
@@ -3491,7 +3501,7 @@ export function WorkoutAnalyzerMode({
 
       {workoutFlowStep === "setup" && (
       <>
-      {!cameraOnly && !activePreset && <div className="grid grid-cols-2 gap-2 rounded-full border border-border bg-white p-1 shadow-sm dark:bg-card">
+      {!cameraOnly && !activePreset && experience !== "programs" && <div className="grid grid-cols-2 gap-2 rounded-full border border-border bg-white p-1 shadow-sm dark:bg-card">
         {(["quick", "programs"] as AnalyzerTab[]).map((tab) => (
           <button
             key={tab}

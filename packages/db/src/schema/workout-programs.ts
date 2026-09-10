@@ -1,14 +1,20 @@
 import { boolean, integer, jsonb, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export type WorkoutProgramExercise = {
-  label: string;
+  exercise_id?: string;
+  name?: string;
+  order?: number;
+  label?: string;
   exercise?: string;
   clipSrc?: string;
   sets: number;
-  reps?: number;
+  reps?: number | null;
+  duration_seconds?: number | null;
   seconds?: number;
+  rest_seconds?: number;
   restSeconds?: number;
-  tracking: "timer" | "manual";
+  reps_per_side?: boolean;
+  tracking?: "timer" | "manual";
 };
 
 export const workoutPrograms = pgTable("workout_programs", {
@@ -16,6 +22,7 @@ export const workoutPrograms = pgTable("workout_programs", {
   slug: varchar("slug", { length: 120 }).notNull().unique(),
   name: varchar("name", { length: 160 }).notNull(),
   tagline: text("tagline").notNull(),
+  programType: varchar("program_type", { length: 30 }).notNull().default("Calisthenics"),
   difficulty: varchar("difficulty", { length: 20 }).notNull().default("Beginner"),
   durationMin: integer("duration_min").notNull(),
   goal: varchar("goal", { length: 120 }).notNull(),

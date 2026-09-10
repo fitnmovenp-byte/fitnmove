@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS public.workout_programs (
   slug varchar(120) NOT NULL UNIQUE,
   name varchar(160) NOT NULL,
   tagline text NOT NULL,
+  program_type varchar(30) NOT NULL DEFAULT 'Calisthenics',
   difficulty varchar(20) NOT NULL DEFAULT 'Beginner',
   duration_min integer NOT NULL,
   goal varchar(120) NOT NULL,

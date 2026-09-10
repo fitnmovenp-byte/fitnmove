@@ -137,11 +137,11 @@ export const NUTRIENT_I18N_KEY: Record<string, string> = {
 export const DEFAULT_SERVING_SIZE = 100;
 
 export const PLANS = ["free", "pro"] as const;
-export const AI_FEATURES = ["ocr", "estimate", "chat"] as const;
+export const AI_FEATURES = ["ocr", "estimate", "chat", "workout"] as const;
 
 export const PLAN_LIMITS = {
   free: {
-    ai: { ocr: 3, estimate: 3, chat: 10 },
+    ai: { ocr: 3, estimate: 3, chat: 10, workout: 5 },
     micronutrients: false,
     exercise: false,
     fasting: false,
@@ -150,7 +150,7 @@ export const PLAN_LIMITS = {
     savedMealsLimit: 0,
   },
   pro: {
-    ai: { ocr: Infinity, estimate: Infinity, chat: 100 },
+    ai: { ocr: Infinity, estimate: Infinity, chat: 100, workout: 5 },
     micronutrients: true,
     exercise: true,
     fasting: true,

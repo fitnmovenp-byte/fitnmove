@@ -3,8 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, BrainCircuit, Dumbbell, Plus, Search, Sparkles, X } from "lucide-react";
+import { ArrowLeft, BrainCircuit, Dumbbell, Loader2, Plus, Search, Sparkles, X } from "lucide-react";
 import { WORKOUT_CLIPS, type WorkoutClip } from "@/lib/workout-clips";
 import type { PresetExercise, WorkoutPreset } from "../../food/scan-label/workout-analyzer-mode";
 
@@ -83,6 +84,10 @@ export default function QuickWorkoutPage() {
   });
   const [routine, setRoutine] = useState<RoutineItem[]>([]);
   const [equipment, setEquipment] = useState<EquipmentFilter>("All");
+  const [showGenerator, setShowGenerator] = useState(false);
+  const [generatorFocus, setGeneratorFocus] = useState("Full body");
+  const [generating, setGenerating] = useState(false);
+  const [generatorMessage, setGeneratorMessage] = useState("");
   const clips = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return WORKOUT_CLIPS.filter((clip) =>
@@ -115,6 +120,27 @@ export default function QuickWorkoutPage() {
     sessionStorage.setItem(ROUTINE_STORAGE_KEY, JSON.stringify(toPreset(routine)));
     router.push("/hub/workout/quick/train");
   };
+  const generatePlan = async () => {
+    setGenerating(true);
+    setGeneratorMessage("");
+    try {
+      const response = await fetch("/api/workout/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ focus: generatorFocus }) });
+      const result = await response.json() as { exercises?: Array<{ clipId: string; sets: number; reps: number; seconds?: number; restSeconds: number }>; rationale?: string; error?: string };
+      if (!response.ok || !result.exercises) throw new Error(result.error || "Could not generate a workout.");
+      const generated = result.exercises.flatMap((item) => {
+        const clip = WORKOUT_CLIPS.find((entry) => entry.id === item.clipId);
+        if (!clip) return [];
+        return Array.from({ length: item.sets }, (_, setIndex) => ({ id: `ai-${clip.id}-${Date.now()}-${setIndex}`, clip, reps: isTimedClip(clip) ? (item.seconds ?? 30) : item.reps, restSeconds: item.restSeconds }));
+      });
+      setRoutine(generated);
+      setGeneratorMessage(result.rationale || "Your plan is ready. You can edit every exercise before starting.");
+      setShowGenerator(false);
+    } catch (error) {
+      setGeneratorMessage(error instanceof Error ? error.message : "Could not generate a workout.");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-4 pb-28 sm:px-6">
@@ -123,9 +149,12 @@ export default function QuickWorkoutPage() {
         <div><h1 className="text-2xl font-black text-[#17201E]">Build a custom workout</h1><p className="mt-1 text-sm leading-5 text-[#6B7773]">Add exercises from FitNMove&apos;s workout clips, set reps and breaks, then train without a camera.</p></div>
       </header>
 
-      <section className="rounded-[24px] border border-[#CFECE4] bg-[#F7FAF9] p-4 shadow-sm sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-2 text-[#15483F]"><BrainCircuit className="h-5 w-5" /><h2 className="font-black">Smart Workout Plan</h2></div><p className="mt-1 text-sm text-[#6B7773]">Create a balanced routine from clips in your selected focus area.</p></div><button type="button" onClick={createAiPlan} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#15483F] px-4 text-sm font-black text-white"><Sparkles className="h-4 w-4" /> Generate plan</button></div>
+      <section className="relative isolate aspect-[16/9] overflow-hidden rounded-[24px] border border-[#35D39A]/70 bg-[#06251C] shadow-[0_14px_40px_rgba(7,55,40,0.22)]">
+        <Image src="/images/aibanner.png" alt="" fill priority sizes="(max-width: 640px) 100vw, 900px" className="-z-10 object-contain" />
+        <div className="absolute inset-x-0 bottom-0 flex justify-start p-2.5 sm:p-5"><button type="button" onClick={() => setShowGenerator(true)} className="inline-flex min-h-9 w-1/2 items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#B8F34A] to-[#35D39A] px-2 text-xs font-black text-[#06251C] shadow-[0_8px_24px_rgba(53,211,154,0.25)] transition hover:brightness-110 sm:min-h-11 sm:w-auto sm:min-w-[220px] sm:gap-2 sm:px-4 sm:text-sm"><Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Generate plan <span className="text-base leading-none sm:text-lg">›</span></button></div>
       </section>
+
+      {showGenerator && typeof document !== "undefined" ? createPortal(<div className="fixed inset-0 z-[9999] flex items-end justify-center bg-[#02120E]/75 p-3 backdrop-blur-md sm:items-center"><section className="relative w-full max-w-lg overflow-hidden rounded-[28px] border border-[#35D39A]/35 bg-[#0B2C24]/95 p-5 text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:p-6"><div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-[#20C7A4]/20 blur-3xl" /><div className="pointer-events-none absolute -bottom-24 -left-16 h-44 w-44 rounded-full bg-[#B8F34A]/10 blur-3xl" /><div className="relative flex items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[#35D39A]">FitNMove Coach</p><h2 className="mt-1 text-2xl font-black tracking-tight text-[#F4F8F5]">What should we train today?</h2><p className="mt-2 text-sm leading-5 text-[#C0D1CA]">I&apos;ll review your profile and prepare a safe, practical routine from the clips in the app.</p></div><button type="button" onClick={() => setShowGenerator(false)} className="rounded-full border border-[#2A5D4E] bg-[#10372D]/80 px-3 py-2 text-sm font-bold text-[#C0D1CA] transition hover:border-[#35D39A] hover:text-white">Close</button></div><label className="relative mt-6 block text-sm font-black text-[#F4F8F5]">Body area to focus on<select value={generatorFocus} onChange={(event) => setGeneratorFocus(event.target.value)} className="mt-2 h-12 w-full rounded-xl border border-[#2A5D4E] bg-[#10372D] px-3 text-sm font-bold text-[#F4F8F5] outline-none focus:border-[#35D39A] focus:ring-2 focus:ring-[#35D39A]/20"><option className="bg-[#10372D]">Full body</option>{MUSCLE_FILTERS.filter((item) => item !== "All").map((item) => <option className="bg-[#10372D]" key={item}>{item}</option>)}</select></label><div className="relative mt-5 rounded-2xl border border-[#2A5D4E] bg-[#10372D]/70 p-4 text-sm text-[#C0D1CA] shadow-inner"><p className="font-black text-[#B8F34A]">Personalizing to your needs</p><p className="mt-1">Your gender, height, weight, goal, and activity level help shape the sets, reps, and rest.</p></div><button type="button" onClick={() => void generatePlan()} disabled={generating} className="relative mt-5 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#B8F34A] text-sm font-black text-[#10372D] shadow-[0_12px_30px_rgba(184,243,74,0.2)] transition hover:bg-[#D1FF77] disabled:cursor-wait disabled:opacity-60">{generating ? <><Loader2 className="h-4 w-4 animate-spin" /> Preparing your workout...</> : <><Sparkles className="h-4 w-4" /> Prepare workout plan</>}</button>{generatorMessage && <p className="relative mt-3 text-sm font-semibold text-[#FFB4A8]">{generatorMessage}</p>}</section></div>, document.body) : null}
 
       <section className="mt-5 rounded-[24px] border border-[#DDE8E4] bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3"><div><h2 className="font-black text-[#17201E]">Your routine</h2><p className="mt-1 text-sm text-[#6B7773]">Each break runs after its exercise.</p></div><span className="rounded-full bg-[#EAF8F4] px-3 py-1 text-xs font-black text-[#15483F]">{routine.length} exercises</span></div>

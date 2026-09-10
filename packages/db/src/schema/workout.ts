@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { exercises } from "./exercise";
+import { workoutPrograms } from "./workout-programs";
 
 export const workouts = pgTable(
   "workouts",
@@ -21,6 +22,9 @@ export const workouts = pgTable(
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     name: varchar("name", { length: 200 }).notNull(),
+    programId: uuid("program_id").references(() => workoutPrograms.id, { onDelete: "set null" }),
+    programSlug: varchar("program_slug", { length: 120 }),
+    pointsEarned: integer("points_earned"),
     templateId: uuid("template_id").references(() => workoutTemplates.id, {
       onDelete: "set null",
     }),

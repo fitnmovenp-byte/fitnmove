@@ -104,6 +104,12 @@ export function HubMuscleMap({ compact = false }: HubMuscleMapProps) {
       onSelectionChange: setSelectedMuscles,
     });
 
+    // The widget defaults its canvas to `touch-action: none` for drag selection.
+    // On phones that captures vertical swipes and prevents the page from scrolling.
+    // Keep taps selectable while allowing normal vertical page scrolling.
+    const mapCanvas = mapContainerRef.current.querySelector("canvas");
+    if (mapCanvas) mapCanvas.style.touchAction = "pan-y";
+
     map.enableTooltip((muscle, muscleSide) => `${formatMuscleName(muscle)}<br><small>${muscleSide} side</small>`);
     map.enableHistory(30);
     map.enablePulse(1.4, 0.64, 1);
